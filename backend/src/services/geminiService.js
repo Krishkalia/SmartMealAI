@@ -28,6 +28,10 @@ class GeminiService {
         - Pantry Items on Hand (prioritize using these): ${JSON.stringify(userPreferences.pantry || [])}
 
         Generate 3 completely unique, delicious recipes.
+        The recipe MUST be highly detailed.
+        - The 'ingredients' array MUST be exhaustive. Include every single item required, including all basic pantry staples like salt, black pepper, cooking oils (e.g., olive oil, vegetable oil), water, and all spices.
+        - The 'steps' array MUST provide a comprehensive, step-by-step cooking guide. Break down the process clearly so a beginner can follow it without ambiguity.
+        
         Return strictly in this JSON format without markdown ticks:
         {
           "aiMessage": "A 1-2 sentence rationale for why you designed this specific combination of meals.",
@@ -43,7 +47,7 @@ class GeminiService {
               { "name": "Ingredient Name", "qty": 1, "unit": "kg" }
             ],
             "steps": [
-              { "text": "Step description", "duration": 5, "type": "prep" }
+              { "text": "Detailed step description", "duration": 5, "type": "prep" }
             ],
             "allergens": []
           },

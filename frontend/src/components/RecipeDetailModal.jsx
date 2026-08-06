@@ -1,0 +1,245 @@
+import React, { useState, useEffect } from 'react';
+
+const RecipeDetailModal = ({ recipe, initialServings, onClose }) => {
+  const [servings, setServings] = useState(initialServings || 2);
+  const [checkedIngredients, setCheckedIngredients] = useState(new Set());
+  const [keepAwake, setKeepAwake] = useState(false);
+  
+  // Base servings assumed by the AI (let's assume it generated for the initialServings or default to 2 if unknown, but wait, initialServings IS what the AI used because it knew the household size).
+  const baseServings = initialServings || 2;
+  const ratio = servings / baseServings;
+
+  useEffect(() => {
+    // Handle escape key to close modal
+    const handleEsc = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleEsc);
+    
+    // Attempt wake lock if supported
+    let wakeLock = null;
+    const requestWakeLock = async () => {
+      try {
+        if ('wakeLock' in navigator && keepAwake) {
+          wakeLock = await navigator.wakeLock.request('screen');
+        }
+      } catch (err) {
+        console.error(`${err.name}, ${err.message}`);
+      }
+    };
+    
+    if (keepAwake) {
+      requestWakeLock();
+    } else if (wakeLock) {
+      wakeLock.release().then(() => { wakeLock = null; });
+    }
+
+    return () => {
+      window.removeEventListener('keydown', handleEsc);
+      if (wakeLock) wakeLock.release();
+    };
+  }, [onClose, keepAwake]);
+
+  const toggleIngredient = (idx) => {
+    const newChecked = new Set(checkedIngredients);
+    if (newChecked.has(idx)) {
+      newChecked.delete(idx);
+    } else {
+      newChecked.add(idx);
+    }
+    setCheckedIngredients(newChecked);
+  };
+
+  if (!recipe) return null;
+
+  // Use dynamic image logic similar to RecipeCard if no URL
+  const defaultImage = "https://images.unsplash.com/photo-149883716733f-56516b530f4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80";
+  const dynamicImage = `https://image.pollinations.ai/prompt/delicious%20food%20dish%20${encodeURIComponent(recipe.name)}?width=800&height=600&nologo=true`;
+  const imageUrl = recipe.imageUrl || dynamicImage || defaultImage;
+
+  return (
+    <div className="fixed inset-0 z-[100] flex justify-center bg-background/80 backdrop-blur-sm overflow-y-auto p-4 md:p-8">
+      {/* Container matches the standard project theme */}
+      <div className="w-full max-w-[1200px] min-h-[90vh] rounded-2xl bg-surface text-on-background font-body-lg flex flex-col relative pb-12 shadow-large border border-border overflow-hidden">
+        
+        {/* Top Navigation / Close Button */}
+        <button 
+          onClick={onClose}
+          className="absolute top-4 left-4 z-10 w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center hover:bg-border transition-colors text-on-surface"
+        >
+          <span className="material-symbols-outlined text-[20px]">close</span>
+        </button>
+
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row w-full min-h-[400px]">
+          
+          {/* Header Left: Info */}
+          <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center border-b md:border-b-0 border-r-0 md:border-r border-border">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 font-h1 text-primary leading-tight">{recipe.name}</h1>
+            
+            {/* Stars */}
+            <div className="flex items-center gap-1 mb-6 text-secondary">
+              {[...Array(5)].map((_, i) => (
+                <span key={i} className="material-symbols-outlined text-[20px] fill-current">star</span>
+              ))}
+            </div>
+            
+            <p className="text-text-secondary text-lg mb-8 leading-relaxed font-body-lg">
+              {recipe.description || 'A delicious, AI-crafted meal designed exactly for your tastes and pantry.'}
+            </p>
+            
+            {/* Meta Info */}
+            <div className="flex items-center gap-8 text-sm">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full border border-border bg-surface-alt flex items-center justify-center text-text-secondary">
+                  <span className="material-symbols-outlined text-[18px]">calendar_today</span>
+                </div>
+                <div>
+                  <div className="font-label-caps text-label-caps text-on-background">LAST MADE</div>
+                  <div className="text-text-secondary font-body-sm text-xs mt-0.5">Never</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full border border-border bg-surface-alt flex items-center justify-center text-text-secondary">
+                  <span className="material-symbols-outlined text-[18px]">schedule</span>
+                </div>
+                <div>
+                  <div className="font-label-caps text-label-caps text-on-background">TOTAL TIME</div>
+                  <div className="text-text-secondary font-body-sm text-xs mt-0.5">{(recipe.prepTime || 0) + (recipe.cookTime || 0)} min</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full border border-border bg-surface-alt flex items-center justify-center text-text-secondary">
+                  <span className="material-symbols-outlined text-[18px]">skillet</span>
+                </div>
+                <div>
+                  <div className="font-label-caps text-label-caps text-on-background">COOK TIME</div>
+                  <div className="text-text-secondary font-body-sm text-xs mt-0.5">{recipe.cookTime || 0} min</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Header Right: Image */}
+          <div className="w-full md:w-1/2 h-[300px] md:h-auto relative bg-surface-alt">
+            <img 
+              src={imageUrl} 
+              alt={recipe.name} 
+              className="w-full h-full object-cover"
+            />
+            {/* Interactive Actions Overlay (Save, Share, etc.) */}
+            <div className="absolute bottom-4 right-4 flex gap-2">
+              <button className="w-10 h-10 rounded-full bg-surface hover:bg-surface-variant text-on-surface flex items-center justify-center shadow-lg transition-colors border border-border">
+                <span className="material-symbols-outlined text-[20px] text-danger">favorite</span>
+              </button>
+              <button className="w-10 h-10 rounded-full bg-surface hover:bg-surface-variant text-on-surface flex items-center justify-center shadow-lg transition-colors border border-border">
+                <span className="material-symbols-outlined text-[20px]">share</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Body Section */}
+        <div className="flex flex-col md:flex-row w-full px-4 md:px-12 py-8 gap-12 flex-1">
+          
+          {/* Left Column: Ingredients */}
+          <div className="w-full md:w-[35%] lg:w-[30%]">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-2xl font-bold font-h2 text-on-background">Ingredients</h2>
+            </div>
+            
+            {/* Serves Control */}
+            <div className="flex items-center gap-3 mb-8">
+              <div className="bg-primary-container text-on-primary-container px-3 py-1 rounded text-sm font-semibold flex items-center gap-2 border border-primary">
+                <span className="material-symbols-outlined text-[16px]">person</span>
+                Serves {servings}
+              </div>
+              <button 
+                onClick={() => setServings(Math.max(1, servings - 1))}
+                className="w-8 h-8 rounded-full hover:bg-surface-variant flex items-center justify-center text-text-secondary hover:text-primary transition-colors border border-transparent hover:border-border"
+              >
+                <span className="material-symbols-outlined text-[20px]">remove</span>
+              </button>
+              <button 
+                onClick={() => setServings(servings + 1)}
+                className="w-8 h-8 rounded-full hover:bg-surface-variant flex items-center justify-center text-text-secondary hover:text-primary transition-colors border border-transparent hover:border-border"
+              >
+                <span className="material-symbols-outlined text-[20px]">add</span>
+              </button>
+            </div>
+
+            <ul className="space-y-4">
+              {recipe.ingredients?.map((ing, idx) => {
+                const scaledQty = (ing.qty * ratio).toFixed(1).replace(/\.0$/, ''); // Remove trailing .0
+                const isChecked = checkedIngredients.has(idx);
+                
+                return (
+                  <li key={idx} className="flex items-start gap-3 group cursor-pointer" onClick={() => toggleIngredient(idx)}>
+                    <div className={`w-5 h-5 mt-0.5 rounded border flex-shrink-0 flex items-center justify-center transition-colors ${isChecked ? 'bg-primary border-primary text-on-primary' : 'border-outline hover:border-primary text-transparent'}`}>
+                      <span className="material-symbols-outlined text-[14px] font-bold">check</span>
+                    </div>
+                    <div className={`text-base ${isChecked ? 'text-text-secondary line-through opacity-70' : 'text-on-background'}`}>
+                      {ing.qty > 0 ? (
+                        <>
+                          <span className="font-semibold mr-1.5">{scaledQty}</span>
+                          <span className="mr-1.5">{ing.unit}</span>
+                        </>
+                      ) : null}
+                      <span className="font-medium">{ing.name}</span>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+
+          {/* Right Column: Instructions */}
+          <div className="w-full md:w-[65%] lg:w-[70%] md:border-l border-border md:pl-12">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-2xl font-bold font-h2 text-on-background">Instructions</h2>
+              <button className="flex items-center gap-2 text-primary hover:text-primary-hover font-label-caps text-label-caps transition-colors bg-primary/10 px-3 py-1.5 rounded-full">
+                <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
+                Cook Mode
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              {recipe.steps && recipe.steps.length > 0 ? (
+                recipe.steps.map((step, idx) => (
+                  <div key={idx} className="bg-background border border-border p-6 rounded-xl shadow-sm">
+                    <h3 className="text-xl font-bold mb-3 text-on-background font-h2">Step {idx + 1}</h3>
+                    <p className="text-text-secondary text-lg leading-relaxed">
+                      {step.text}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <div className="bg-background border border-border p-6 rounded-xl shadow-sm">
+                  <h3 className="text-xl font-bold mb-3 text-on-background font-h2">Preparation</h3>
+                  <p className="text-text-secondary text-lg leading-relaxed">
+                    Detailed step-by-step instructions were not provided for this AI-generated recipe. Use your culinary intuition!
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Bottom Toggle */}
+            <div className="mt-12 flex justify-end">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <div className="relative">
+                  <input type="checkbox" className="sr-only" checked={keepAwake} onChange={(e) => setKeepAwake(e.target.checked)} />
+                  <div className={`block w-10 h-6 rounded-full transition-colors ${keepAwake ? 'bg-primary' : 'bg-surface-variant'}`}></div>
+                  <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${keepAwake ? 'translate-x-4' : 'translate-x-0'} shadow-sm`}></div>
+                </div>
+                <span className="text-sm font-semibold text-text-secondary uppercase tracking-wider font-label-caps">Keep Screen Awake</span>
+              </label>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default RecipeDetailModal;

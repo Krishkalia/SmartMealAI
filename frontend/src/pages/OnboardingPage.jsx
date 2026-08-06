@@ -11,26 +11,39 @@ const MySwal = withReactContent(Swal);
 const OnboardingPage = () => {
   const navigate = useNavigate();
   const { generatePlan, isLoading } = usePlan();
-  const { updatePreferences } = useAuth();
+  const { updatePreferences, user } = useAuth();
   
-  const [household, setHousehold] = useState(2);
-  const [pantryItems, setPantryItems] = useState([]);
+  const prefs = user?.preferences || {};
+  
+  const [household, setHousehold] = useState(prefs.household || 2);
+  const [pantryItems, setPantryItems] = useState(prefs.pantry?.length > 0 ? prefs.pantry : []);
 
   React.useEffect(() => {
-    const saved = localStorage.getItem('smartmeal_pantry');
-    if (saved) {
-      try {
-        setPantryItems(JSON.parse(saved));
-      } catch (e) {
-        console.error('Failed to parse pantry data', e);
+    if (!prefs.pantry || prefs.pantry.length === 0) {
+      const saved = localStorage.getItem('smartmeal_pantry');
+      if (saved) {
+        try {
+          setPantryItems(JSON.parse(saved));
+        } catch (e) {
+          console.error('Failed to parse pantry data', e);
+        }
+      } else {
+        setPantryItems([
+          { name: 'Olive Oil', qty: 1, unit: 'bottle' },
+          { name: 'Basmati Rice', qty: 2, unit: 'kg' }
+        ]);
       }
-    } else {
-      setPantryItems([
-        { name: 'Olive Oil', qty: 1, unit: 'bottle' },
-        { name: 'Basmati Rice', qty: 2, unit: 'kg' }
-      ]);
     }
-  }, []);
+  }, [prefs.pantry]);
+
+  const initialDiets = ['vegetarian', 'vegan', 'non-vegetarian', 'eggetarian'];
+  const userDiet = prefs.dietaryPreferences?.find(p => initialDiets.includes(p)) || 'no restriction';
+  
+  const predefinedAllergies = ['nuts', 'dairy', 'shellfish', 'gluten'];
+  const userAllergies = prefs.dietaryPreferences?.filter(p => predefinedAllergies.includes(p)) || [];
+  const userCustomAllergies = prefs.dietaryPreferences?.filter(p => !predefinedAllergies.includes(p) && !initialDiets.includes(p)) || [];
+  
+  const userCuisine = prefs.cuisine?.length > 0 ? prefs.cuisine[0] : 'mixed/no preference';
 
   const savePantry = (items) => {
     setPantryItems(items);
@@ -127,7 +140,7 @@ const OnboardingPage = () => {
               <div className="flex flex-wrap gap-2">
                 {['Vegetarian', 'Vegan', 'Non-Vegetarian', 'Eggetarian', 'No Restriction'].map((diet) => (
                   <label key={diet} className="cursor-pointer">
-                    <input className="peer sr-only" name="diet" type="radio" value={diet.toLowerCase()} defaultChecked={diet === 'No Restriction'} />
+                    <input className="peer sr-only" name="diet" type="radio" value={diet.toLowerCase()} defaultChecked={diet.toLowerCase() === userDiet} />
                     <div className="px-4 py-2 rounded-full border border-border text-on-background font-body-sm text-body-sm peer-checked:bg-primary-container peer-checked:text-on-primary-container peer-checked:border-primary-container transition-colors hover:bg-surface-variant">
                       {diet}
                     </div>
@@ -147,7 +160,7 @@ const OnboardingPage = () => {
                   { name: 'Gluten', icon: 'breakfast_dining', value: 'gluten' },
                 ].map((allergy) => (
                   <label key={allergy.value} className="cursor-pointer shrink-0">
-                    <input className="peer sr-only" name="allergy" type="checkbox" value={allergy.value} />
+                    <input className="peer sr-only" name="allergy" type="checkbox" value={allergy.value} defaultChecked={userAllergies.includes(allergy.value)} />
                     <div className="px-3 py-1.5 rounded-full bg-surface-alt text-secondary font-body-sm text-body-sm peer-checked:bg-secondary-container peer-checked:text-on-secondary-container transition-colors flex items-center gap-1 border border-transparent peer-checked:border-secondary-container hover:bg-surface-variant">
                       <span className="material-symbols-outlined text-[16px]">{allergy.icon}</span> {allergy.name}
                     </div>
@@ -160,6 +173,7 @@ const OnboardingPage = () => {
                   id="customAllergies" 
                   placeholder="Other allergies (comma separated, e.g., soy, sesame)" 
                   type="text" 
+                  defaultValue={userCustomAllergies.join(', ')}
                 />
               </div>
             </div>
@@ -170,7 +184,7 @@ const OnboardingPage = () => {
               <div className="flex flex-wrap gap-2">
                 {['Indian', 'Continental', 'Asian', 'Mexican', 'Mixed/No preference'].map((cuisine) => (
                   <label key={cuisine} className="cursor-pointer">
-                    <input className="peer sr-only" name="cuisine" type="radio" value={cuisine.toLowerCase()} defaultChecked={cuisine === 'Mixed/No preference'} />
+                    <input className="peer sr-only" name="cuisine" type="radio" value={cuisine.toLowerCase()} defaultChecked={cuisine.toLowerCase() === userCuisine} />
                     <div className="px-4 py-2 rounded-full border border-border text-on-background font-body-sm text-body-sm peer-checked:bg-primary-container peer-checked:text-on-primary-container peer-checked:border-primary-container transition-colors hover:bg-surface-variant">
                       {cuisine}
                     </div>
@@ -185,7 +199,7 @@ const OnboardingPage = () => {
               <div className="flex flex-wrap gap-2">
                 {['Quick <30 min/meal', 'Standard', 'Elaborate'].map((time) => (
                   <label key={time} className="cursor-pointer">
-                    <input className="peer sr-only" name="cookTime" type="radio" value={time} defaultChecked={time === 'Standard'} />
+                    <input className="peer sr-only" name="cookTime" type="radio" value={time} defaultChecked={time === (prefs.cookTime || 'Standard')} />
                     <div className="px-4 py-2 rounded-full border border-border text-on-background font-body-sm text-body-sm peer-checked:bg-primary-container peer-checked:text-on-primary-container peer-checked:border-primary-container transition-colors hover:bg-surface-variant">
                       {time}
                     </div>
@@ -202,7 +216,7 @@ const OnboardingPage = () => {
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-secondary font-body-lg text-body-lg">
                     ₹
                   </div>
-                  <input className="block w-full pl-7 pr-3 py-2 border border-border rounded-lg bg-surface text-on-background font-body-lg text-body-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary" id="budget" min="0" name="budget" placeholder="Optional" step="1" type="number" />
+                  <input className="block w-full pl-7 pr-3 py-2 border border-border rounded-lg bg-surface text-on-background font-body-lg text-body-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary" id="budget" min="0" name="budget" placeholder="Optional" step="1" type="number" defaultValue={prefs.budget || ''} />
                 </div>
               </div>
               

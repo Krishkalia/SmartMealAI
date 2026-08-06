@@ -1,8 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { usePlan } from '../context/PlanContext';
+import { useAuth } from '../context/AuthContext';
+import RecipeDetailModal from './RecipeDetailModal';
 
 const CookingTimeline = () => {
   const { planData } = usePlan();
+  const { user } = useAuth();
+  const [selectedRecipe, setSelectedRecipe] = useState(null);
 
   if (!planData) {
     return <div className="p-8 text-center text-text-secondary">No plan data available. Please generate a plan first.</div>;
@@ -26,6 +30,19 @@ const CookingTimeline = () => {
       case 'cook': return 'bg-primary text-on-primary border-background';
       case 'wait': return 'bg-secondary text-on-secondary border-background';
       default: return 'bg-success text-on-primary border-background';
+    }
+  };
+
+  const getStepTitle = (type) => {
+    if (type === 'prep') return 'Preparation Step';
+    return `${type} Step`;
+  };
+
+  const handleOpenRecipe = (mealType) => {
+    if (!mealType) return;
+    const mealKey = mealType.toLowerCase();
+    if (planData.meals && planData.meals[mealKey]) {
+      setSelectedRecipe(planData.meals[mealKey]);
     }
   };
 
@@ -65,16 +82,27 @@ const CookingTimeline = () => {
               <div className={`hidden md:block w-5/12 ${isEven ? 'text-right pr-8' : 'order-last text-left pl-8'}`}>
                 {isEven ? (
                   <>
-                    <div className="font-h2 text-h2 text-on-background mb-1 capitalize">{step.type} Step</div>
-                    <p className="text-text-secondary text-body-sm">{step.phrasedInstruction || step.instruction}</p>
+                    <div className="font-h2 text-h2 text-on-background mb-1 capitalize">{getStepTitle(step.type)} ({step.mealType})</div>
+                    <p className="text-text-secondary text-body-sm mb-3">{step.phrasedInstruction || step.instruction}</p>
+                    <button 
+                      onClick={() => handleOpenRecipe(step.mealType)}
+                      className="text-primary hover:text-primary-hover font-label-caps text-label-caps text-sm flex items-center justify-end gap-1 w-full"
+                    >
+                      Detailed Recipe <span className="material-symbols-outlined text-[16px]">open_in_new</span>
+                    </button>
                   </>
                 ) : (
                   <>
                     <div className="flex items-center justify-start gap-3 mb-2">
                       <span className="font-label-caps text-label-caps text-primary font-bold">{timeLabel}</span>
-                      <span className="px-2 py-1 rounded-full bg-surface-alt text-text-secondary font-label-caps text-label-caps">{step.meal}</span>
                     </div>
-                    <div className="font-h2 text-h2 text-on-background mb-1 capitalize">{step.type} Step</div>
+                    <div className="font-h2 text-h2 text-on-background mb-1 capitalize">{getStepTitle(step.type)} ({step.mealType})</div>
+                    <button 
+                      onClick={() => handleOpenRecipe(step.mealType)}
+                      className="text-primary hover:text-primary-hover font-label-caps text-label-caps text-sm flex items-center justify-start gap-1 w-full mt-3"
+                    >
+                      Detailed Recipe <span className="material-symbols-outlined text-[16px]">open_in_new</span>
+                    </button>
                   </>
                 )}
               </div>
@@ -89,18 +117,31 @@ const CookingTimeline = () => {
               {/* Right Side (Desktop) & Full Content (Mobile) */}
               <div className={`w-full md:w-5/12 ${isEven ? 'pl-12 md:pl-8 -mt-12 md:mt-0' : 'pl-12 md:pr-8 md:pl-0 md:text-right -mt-12 md:mt-0 order-1 md:order-none'}`}>
                 {/* Mobile specific headers */}
-                <div className="md:hidden font-h2 text-h2 text-on-background mb-1 capitalize">{step.type} Step</div>
+                <div className="md:hidden font-h2 text-h2 text-on-background mb-1 capitalize">{getStepTitle(step.type)} ({step.mealType})</div>
                 <div className={`flex items-center gap-3 mb-2 ${isEven ? '' : 'md:hidden'}`}>
                   <span className={`font-label-caps text-label-caps font-bold ${isEven ? 'text-success' : 'text-primary'}`}>{timeLabel}</span>
-                  <span className="px-2 py-1 rounded-full bg-surface-alt text-text-secondary font-label-caps text-label-caps">{step.meal}</span>
                 </div>
                 
                 {isEven ? (
-                  <div className="md:hidden text-text-secondary text-body-sm bg-surface p-4 rounded-lg border border-border shadow-sm mt-2">{step.phrasedInstruction || step.instruction}</div>
+                  <div className="md:hidden text-text-secondary text-body-sm bg-surface p-4 rounded-lg border border-border shadow-sm mt-2">
+                    <p>{step.phrasedInstruction || step.instruction}</p>
+                    <button 
+                      onClick={() => handleOpenRecipe(step.mealType)}
+                      className="text-primary hover:text-primary-hover font-label-caps text-label-caps text-sm flex items-center justify-start gap-1 w-full mt-3"
+                    >
+                      Detailed Recipe <span className="material-symbols-outlined text-[16px]">open_in_new</span>
+                    </button>
+                  </div>
                 ) : (
                   <div className="bg-surface p-4 md:p-6 rounded-xl border border-border shadow-sm transition-shadow hover:shadow-md text-left md:text-right">
                     <p className="text-text-secondary text-body-sm">{step.phrasedInstruction || step.instruction}</p>
-                    <p className="text-text-secondary text-body-sm mt-2 font-medium">{step.duration} min</p>
+                    <p className="text-text-secondary text-body-sm mt-2 font-medium mb-3">{step.duration} min</p>
+                    <button 
+                      onClick={() => handleOpenRecipe(step.mealType)}
+                      className="text-primary hover:text-primary-hover font-label-caps text-label-caps text-sm flex items-center justify-start md:justify-end gap-1 w-full"
+                    >
+                      Detailed Recipe <span className="material-symbols-outlined text-[16px]">open_in_new</span>
+                    </button>
                   </div>
                 )}
                 
@@ -109,7 +150,6 @@ const CookingTimeline = () => {
                   <div className="hidden md:block">
                     <div className="flex items-center gap-3 mb-2">
                       <span className="font-label-caps text-label-caps text-success font-bold">{timeLabel}</span>
-                      <span className="px-2 py-1 rounded-full bg-surface-alt text-text-secondary font-label-caps text-label-caps">{step.meal}</span>
                     </div>
                   </div>
                 )}
@@ -118,6 +158,14 @@ const CookingTimeline = () => {
           );
         })}
       </div>
+
+      {selectedRecipe && (
+        <RecipeDetailModal 
+          recipe={selectedRecipe} 
+          initialServings={user?.preferences?.household || 2}
+          onClose={() => setSelectedRecipe(null)} 
+        />
+      )}
     </div>
   );
 };

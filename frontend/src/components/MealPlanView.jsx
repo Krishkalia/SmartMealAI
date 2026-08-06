@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { usePlan } from '../context/PlanContext';
 import { useNavigate } from 'react-router-dom';
+import RecipeDetailModal from './RecipeDetailModal';
+import { useAuth } from '../context/AuthContext';
 
-const RecipeCard = ({ recipe, cost, pantryUsed, onRefresh, isRefreshing }) => {
+const RecipeCard = ({ recipe, cost, pantryUsed, onRefresh, isRefreshing, onClick }) => {
   if (!recipe) return null;
 
   const isIngredientInPantry = (ingName) => {
@@ -14,7 +16,10 @@ const RecipeCard = ({ recipe, cost, pantryUsed, onRefresh, isRefreshing }) => {
   const dynamicImage = `https://image.pollinations.ai/prompt/delicious%20food%20dish%20${encodeURIComponent(recipe.name)}?width=800&height=600&nologo=true`;
 
   return (
-    <article className="bg-surface rounded-lg border border-border shadow-sm hover:shadow transition-shadow duration-200 overflow-hidden flex flex-col cursor-pointer group h-full">
+    <article 
+      onClick={() => onClick && onClick(recipe)}
+      className="bg-surface rounded-lg border border-border shadow-sm hover:shadow transition-shadow duration-200 overflow-hidden flex flex-col cursor-pointer group h-full"
+    >
       <div className="w-full h-48 sm:h-56 relative overflow-hidden bg-surface-alt shrink-0">
         <img 
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
@@ -86,8 +91,10 @@ const RecipeCard = ({ recipe, cost, pantryUsed, onRefresh, isRefreshing }) => {
 
 const MealPlanView = () => {
   const { planData, refreshMeal } = usePlan();
+  const { user } = useAuth();
   const navigate = useNavigate();
-  const [refreshingMeal, setRefreshingMeal] = React.useState(null);
+  const [refreshingMeal, setRefreshingMeal] = useState(null);
+  const [selectedRecipe, setSelectedRecipe] = useState(null);
 
   const handleRefresh = async (mealType) => {
     setRefreshingMeal(mealType);
@@ -147,10 +154,19 @@ const MealPlanView = () => {
 
       {/* Meal Cards Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <RecipeCard recipe={meals?.breakfast} cost={perMealCost?.Breakfast} pantryUsed={pantryUsed} onRefresh={handleRefresh} isRefreshing={refreshingMeal === 'breakfast'} />
-        <RecipeCard recipe={meals?.lunch} cost={perMealCost?.Lunch} pantryUsed={pantryUsed} onRefresh={handleRefresh} isRefreshing={refreshingMeal === 'lunch'} />
-        <RecipeCard recipe={meals?.dinner} cost={perMealCost?.Dinner} pantryUsed={pantryUsed} onRefresh={handleRefresh} isRefreshing={refreshingMeal === 'dinner'} />
+        <RecipeCard recipe={meals?.breakfast} cost={perMealCost?.Breakfast} pantryUsed={pantryUsed} onRefresh={handleRefresh} isRefreshing={refreshingMeal === 'breakfast'} onClick={setSelectedRecipe} />
+        <RecipeCard recipe={meals?.lunch} cost={perMealCost?.Lunch} pantryUsed={pantryUsed} onRefresh={handleRefresh} isRefreshing={refreshingMeal === 'lunch'} onClick={setSelectedRecipe} />
+        <RecipeCard recipe={meals?.dinner} cost={perMealCost?.Dinner} pantryUsed={pantryUsed} onRefresh={handleRefresh} isRefreshing={refreshingMeal === 'dinner'} onClick={setSelectedRecipe} />
       </div>
+
+      {/* Recipe Detail Modal */}
+      {selectedRecipe && (
+        <RecipeDetailModal 
+          recipe={selectedRecipe} 
+          initialServings={user?.preferences?.household || 2}
+          onClose={() => setSelectedRecipe(null)} 
+        />
+      )}
     </div>
   );
 };
