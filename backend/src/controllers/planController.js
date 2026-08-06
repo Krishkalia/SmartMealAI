@@ -82,6 +82,7 @@ exports.generatePlan = async (req, res) => {
       totalCost: listResult.totalCost,
       isOverBudget: listResult.isOverBudget,
       budgetDifference: listResult.difference,
+      perMealCost: listResult.perMealCost,
       meals: {
         breakfast: selection.breakfast._id,
         lunch: selection.lunch._id,
@@ -140,6 +141,86 @@ exports.getPlan = async (req, res) => {
     res.json({ success: true, data: plan });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+exports.refreshMeal = async (req, res) => {
+  try {
+    const plan = await Plan.findById(req.params.id)
+      .populate('meals.breakfast')
+      .populate('meals.lunch')
+      .populate('meals.dinner');
+      
+    if (!plan) return res.status(404).json({ success: false, message: 'Plan not found' });
+    if (plan.userId.toString() !== req.user.id) return res.status(401).json({ success: false, message: 'Unauthorized' });
+
+    const { mealType } = req.body; // 'breakfast', 'lunch', 'dinner'
+    if (!['breakfast', 'lunch', 'dinner'].includes(mealType)) {
+      return res.status(400).json({ success: false, message: 'Invalid meal type' });
+    }
+
+    const User = require('../models/User');
+    const user = await User.findById(req.user.id);
+    const preferences = user.preferences || {};
+    
+    const diets = preferences.dietaryPreferences?.filter(p => ['vegetarian', 'vegan', 'keto', 'non-vegetarian'].includes(p.toLowerCase())) || [];
+    const allergies = preferences.dietaryPreferences?.filter(p => !['vegetarian', 'vegan', 'keto', 'non-vegetarian'].includes(p.toLowerCase())) || [];
+    
+    const candidates = await planService.getScoredCandidates(
+      diets, allergies, preferences.budget || 50, preferences.pantry || [], preferences.cuisine || [], preferences.cookTime || 'Standard'
+    );
+    
+    let newRecipe = candidates[mealType].find(r => r._id.toString() !== plan.meals[mealType]._id.toString());
+    if (!newRecipe) newRecipe = candidates[mealType][0];
+
+    plan.meals[mealType] = newRecipe._id;
+
+    const selectedRecipes = [
+      mealType === 'breakfast' ? newRecipe : plan.meals.breakfast,
+      mealType === 'lunch' ? newRecipe : plan.meals.lunch,
+      mealType === 'dinner' ? newRecipe : plan.meals.dinner
+    ];
+
+    const listResult = await planService.generateShoppingList(selectedRecipes, preferences.pantry || [], preferences.budget || 50);
+    const missingIngredients = listResult.flatShoppingList;
+    const substitutions = await geminiService.getMissingIngredientSubstitutes(missingIngredients, allergies);
+    
+    const { timeline: rawTimeline, totalActiveTime } = planService.generateCookingTimeline(selectedRecipes);
+    const phrasedTimeline = await geminiService.phraseTimeline(rawTimeline);
+
+    plan.budget = listResult.budget;
+    plan.totalCost = listResult.totalCost;
+    plan.perMealCost = listResult.perMealCost;
+    plan.isOverBudget = listResult.isOverBudget;
+    plan.budgetDifference = listResult.difference;
+    plan.shoppingList = listResult.shoppingList;
+    plan.pantryUsed = listResult.pantryUsed;
+    plan.substitutions = substitutions;
+    plan.timeline = phrasedTimeline;
+    
+    await plan.save();
+
+    const updatedPlan = await Plan.findById(plan._id)
+      .populate('meals.breakfast')
+      .populate('meals.lunch')
+      .populate('meals.dinner');
+
+    let activeTimeWarning = null;
+    if (totalActiveTime > 210) {
+      activeTimeWarning = `Warning: This plan requires ~${(totalActiveTime / 60).toFixed(1)} hrs of active cooking time. Consider adjusting your cooking-time preference and regenerating.`;
+    }
+
+    res.json({
+      success: true,
+      data: {
+        ...updatedPlan.toObject(),
+        activeTimeWarning
+      }
+    });
+
+  } catch (error) {
+    console.error("Refresh meal error:", error);
+    res.status(500).json({ success: false, message: 'Failed to refresh meal' });
   }
 };
 

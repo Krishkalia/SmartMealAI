@@ -75,17 +75,17 @@ const PlanHistory = () => {
           <p className="font-body-lg text-body-lg text-text-secondary">No saved plans yet.</p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {history.map(plan => (
-            <div key={plan._id} className="bg-surface rounded-xl border border-border p-4 md:p-6 flex flex-col md:flex-row justify-between items-start md:items-center shadow-sm hover:shadow-md transition-shadow">
-              <div>
+            <div key={plan._id} className="bg-surface rounded-xl border border-border p-4 md:p-6 flex flex-col justify-between items-start shadow-sm hover:shadow-md transition-shadow h-full">
+              <div className="w-full">
                 <h3 className="font-h2 text-h2 text-on-surface mb-1">
                   Plan for {new Date(plan.createdAt).toLocaleDateString()}
                 </h3>
                 <p className="font-body-sm text-body-sm text-text-secondary">
-                  Budget: ${plan.budget} | Total Cost: ${plan.totalCost.toFixed(2)}
+                  Budget: ₹{plan.budget} | Total Cost: ₹{plan.totalCost.toFixed(2)}
                 </p>
-                <div className="flex gap-2 mt-2">
+                <div className="flex flex-wrap gap-2 mt-4">
                   <span className="px-2 py-1 bg-surface-alt rounded font-label-caps text-[10px] uppercase text-text-secondary">
                     {plan.meals?.breakfast?.name || 'Breakfast'}
                   </span>
@@ -99,7 +99,7 @@ const PlanHistory = () => {
               </div>
               <button 
                 onClick={() => loadPlan(plan)}
-                className="mt-4 md:mt-0 px-4 py-2 bg-primary-container/10 text-primary hover:bg-primary hover:text-on-primary rounded-lg font-body-sm transition-colors border border-primary/20"
+                className="mt-6 w-full px-4 py-2 bg-primary-container/10 text-primary hover:bg-primary hover:text-on-primary rounded-lg font-body-sm transition-colors border border-primary/20"
               >
                 Reload Plan
               </button>

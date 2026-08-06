@@ -1,9 +1,16 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { usePlan } from '../context/PlanContext';
 import { useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
+import withReactContent from 'sweetalert2-react-content';
+import toast from 'react-hot-toast';
+
+const MySwal = withReactContent(Swal);
 
 const DashboardLayout = ({ children, currentTab, setCurrentTab }) => {
   const { user, logout } = useAuth();
+  const { generatePlan, isLoading } = usePlan();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -17,7 +24,44 @@ const DashboardLayout = ({ children, currentTab, setCurrentTab }) => {
     { id: 'shopping', icon: 'shopping_cart', label: 'Shopping List' },
     { id: 'timeline', icon: 'schedule', label: 'Cooking Timeline' },
     { id: 'history', icon: 'history', label: 'History' },
+    { id: 'profile', icon: 'person', label: 'Profile' },
   ];
+
+  const handleNewPlan = async () => {
+    if (user?.preferences && Object.keys(user.preferences).length > 0 && user.preferences.dietaryPreferences?.length > 0) {
+      const result = await MySwal.fire({
+        title: 'Generate New Plan?',
+        text: "We'll use your saved profile preferences.",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, generate it!',
+        cancelButtonText: 'Cancel',
+        buttonsStyling: false,
+        customClass: {
+          container: 'font-sans',
+          popup: 'rounded-2xl border border-border shadow-large bg-surface',
+          title: 'font-h2 text-h2 font-bold text-on-background',
+          htmlContainer: 'font-body-lg text-text-secondary mt-2',
+          confirmButton: 'bg-primary hover:bg-primary-hover text-on-primary font-label-caps text-label-caps rounded-full px-6 py-2.5 transition-colors shadow-sm',
+          cancelButton: 'bg-surface-variant hover:bg-border text-on-surface-variant font-label-caps text-label-caps rounded-full px-6 py-2.5 transition-colors ml-3',
+          icon: 'text-primary border-primary'
+        }
+      });
+
+      if (result.isConfirmed) {
+        toast.loading('Generating plan...', { id: 'genPlan' });
+        const success = await generatePlan(user.preferences);
+        if (success) {
+          toast.success('Meal plan generated!', { id: 'genPlan' });
+          setCurrentTab('planner');
+        } else {
+          toast.error('Failed to generate plan.', { id: 'genPlan' });
+        }
+      }
+    } else {
+      navigate('/onboarding');
+    }
+  };
 
   return (
     <div className="font-body-lg text-body-lg antialiased min-h-screen flex flex-col md:flex-row bg-background text-on-background selection:bg-primary-container selection:text-on-primary-container">
@@ -28,7 +72,7 @@ const DashboardLayout = ({ children, currentTab, setCurrentTab }) => {
           <p className="font-body-sm text-body-sm text-text-secondary mt-1">Modern Editorial Planning</p>
         </div>
         
-        <ul className="flex flex-col gap-1 flex-grow">
+        <ul className="flex flex-col gap-1 flex-grow overflow-y-auto">
           {tabs.map(tab => (
             <li key={tab.id}>
               <button 
@@ -44,9 +88,11 @@ const DashboardLayout = ({ children, currentTab, setCurrentTab }) => {
         
         <div className="mt-auto pt-8 border-t border-border">
           <button 
-            onClick={() => navigate('/onboarding')}
-            className="w-full py-3 px-4 bg-primary text-on-primary rounded-full font-label-caps text-label-caps hover:bg-primary-hover transition-colors"
+            onClick={handleNewPlan}
+            disabled={isLoading}
+            className="w-full py-3 px-4 bg-primary text-on-primary rounded-full font-label-caps text-label-caps hover:bg-primary-hover transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
           >
+            {isLoading && <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>progress_activity</span>}
             New Plan
           </button>
         </div>
@@ -57,7 +103,7 @@ const DashboardLayout = ({ children, currentTab, setCurrentTab }) => {
         {/* Mobile TopAppBar */}
         <header className="md:hidden w-full sticky top-0 z-50 bg-background border-b border-border flex justify-between items-center px-4 py-4">
           <h1 className="font-h1 text-h1 font-bold text-primary">SmartMeal AI</h1>
-          <button className="text-primary hover:text-primary-hover transition-colors">
+          <button onClick={() => setCurrentTab('profile')} className="text-primary hover:text-primary-hover transition-colors">
             <span className="material-symbols-outlined">account_circle</span>
           </button>
         </header>

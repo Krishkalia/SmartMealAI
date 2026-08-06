@@ -177,8 +177,9 @@ class PlanService {
       // Approximate per-meal split for this ingredient
       const splitCost = cost / (ing.meals.length || 1);
       ing.meals.forEach(m => {
-        if (perMealCost[m] !== undefined) {
-          perMealCost[m] += splitCost;
+        const normalizedMeal = m.charAt(0).toUpperCase() + m.slice(1).toLowerCase();
+        if (perMealCost[normalizedMeal] !== undefined) {
+          perMealCost[normalizedMeal] += splitCost;
         }
       });
 

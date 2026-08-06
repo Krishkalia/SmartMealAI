@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { usePlan } from '../context/PlanContext';
 
 const BudgetShoppingList = () => {
-  const { planData } = planData || usePlan();
+  const { planData } = usePlan();
   const [checkedItems, setCheckedItems] = useState({});
 
   if (!planData) {
@@ -116,7 +116,7 @@ const BudgetShoppingList = () => {
           {hasShoppingList ? Object.entries(shoppingList).map(([category, items], idx) => (
             <div key={idx}>
               <h3 className="font-label-caps text-label-caps text-secondary uppercase tracking-widest mb-4 bg-surface-alt inline-block px-3 py-1 rounded-full">{category}</h3>
-              <ul className="space-y-2">
+              <ul className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
                 {items.map((item, itemIdx) => {
                   const isChecked = checkedItems[item.ingredientName];
                   const itemCost = item.estimatedCost.toFixed(2);

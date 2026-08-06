@@ -66,7 +66,7 @@ const CookingTimeline = () => {
                 {isEven ? (
                   <>
                     <div className="font-h2 text-h2 text-on-background mb-1 capitalize">{step.type} Step</div>
-                    <p className="text-text-secondary text-body-sm">{step.step}</p>
+                    <p className="text-text-secondary text-body-sm">{step.phrasedInstruction || step.instruction}</p>
                   </>
                 ) : (
                   <>
@@ -96,10 +96,10 @@ const CookingTimeline = () => {
                 </div>
                 
                 {isEven ? (
-                  <div className="md:hidden text-text-secondary text-body-sm bg-surface p-4 rounded-lg border border-border shadow-sm mt-2">{step.step}</div>
+                  <div className="md:hidden text-text-secondary text-body-sm bg-surface p-4 rounded-lg border border-border shadow-sm mt-2">{step.phrasedInstruction || step.instruction}</div>
                 ) : (
                   <div className="bg-surface p-4 md:p-6 rounded-xl border border-border shadow-sm transition-shadow hover:shadow-md text-left md:text-right">
-                    <p className="text-text-secondary text-body-sm">{step.step}</p>
+                    <p className="text-text-secondary text-body-sm">{step.phrasedInstruction || step.instruction}</p>
                     <p className="text-text-secondary text-body-sm mt-2 font-medium">{step.duration} min</p>
                   </div>
                 )}

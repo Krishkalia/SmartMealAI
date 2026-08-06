@@ -19,6 +19,18 @@ const UserSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now
+  },
+  preferences: {
+    dietaryPreferences: { type: [String], default: [] },
+    pantry: [{
+      name: String,
+      qty: Number,
+      unit: String
+    }],
+    budget: { type: Number, default: null },
+    household: { type: Number, default: 2 },
+    cuisine: { type: [String], default: [] },
+    cookTime: { type: String, default: 'Standard' }
   }
 });
 

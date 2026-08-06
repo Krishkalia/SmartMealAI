@@ -22,7 +22,7 @@ class GeminiService {
         
         Constraints:
         - Dietary Preferences: ${JSON.stringify(userPreferences.dietaryPreferences || [])}
-        - Budget: $${userPreferences.budget || 25}
+        - Budget: ₹${userPreferences.budget || 25}
         - Cuisine Preferences: ${JSON.stringify(userPreferences.cuisine || [])}
         - Cook Time Available: ${userPreferences.cookTime || 'Standard'}
         - Pantry Items on Hand (prioritize using these): ${JSON.stringify(userPreferences.pantry || [])}
@@ -40,7 +40,7 @@ class GeminiService {
             "prepTime": 10,
             "cookTime": 15,
             "ingredients": [
-              { "name": "Ingredient Name", "qty": 1, "unit": "cup" }
+              { "name": "Ingredient Name", "qty": 1, "unit": "kg" }
             ],
             "steps": [
               { "text": "Step description", "duration": 5, "type": "prep" }
@@ -55,6 +55,7 @@ class GeminiService {
         - dietTags must be an array of strings from the allowed enum.
         - step type must be one of: "prep", "cook", "wait".
         - Ensure ingredients are common so they can be priced easily.
+        - MUST use strictly metric units for ingredients: "g", "kg" for solids, and "ml", "L" for liquids, or "pcs" for items like eggs/onions. Do not use cups, tablespoons, or pinches.
       `;
 
       let attempts = 0;
@@ -272,7 +273,8 @@ class GeminiService {
     try {
       const result = await this.model.generateContent(prompt);
       const text = result.response.text();
-      return this._parseJsonSafely(text);
+      let cleanedText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+      return JSON.parse(cleanedText);
     } catch (error) {
       console.error("Gemini pricing error:", error);
       return {}; // Fallback to empty prices

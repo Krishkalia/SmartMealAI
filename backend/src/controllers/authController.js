@@ -83,3 +83,27 @@ exports.getMe = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
+
+exports.updatePreferences = async (req, res) => {
+  try {
+    const { preferences } = req.body;
+    
+    if (!preferences) {
+      return res.status(400).json({ success: false, message: 'Please provide preferences' });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { preferences },
+      { new: true, runValidators: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      data: user
+    });
+  } catch (error) {
+    console.error('Error updating preferences:', error);
+    res.status(500).json({ success: false, message: 'Server error updating preferences' });
+  }
+};

@@ -70,12 +70,34 @@ export const AuthProvider = ({ children }) => {
     return { success: false, message: data.message };
   };
 
+  const updatePreferences = async (preferences) => {
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/preferences', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ preferences })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setUser(data.data);
+        return { success: true };
+      }
+      return { success: false, message: data.message };
+    } catch (error) {
+      console.error('Error updating preferences:', error);
+      return { success: false, message: 'Network error' };
+    }
+  };
+
   const logout = () => {
     setToken(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, token, isLoading, login, register, logout, updatePreferences }}>
       {children}
     </AuthContext.Provider>
   );

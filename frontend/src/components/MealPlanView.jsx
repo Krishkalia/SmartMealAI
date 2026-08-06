@@ -2,7 +2,7 @@ import React from 'react';
 import { usePlan } from '../context/PlanContext';
 import { useNavigate } from 'react-router-dom';
 
-const RecipeCard = ({ recipe, cost, pantryUsed }) => {
+const RecipeCard = ({ recipe, cost, pantryUsed, onRefresh, isRefreshing }) => {
   if (!recipe) return null;
 
   const isIngredientInPantry = (ingName) => {
@@ -10,27 +10,44 @@ const RecipeCard = ({ recipe, cost, pantryUsed }) => {
   };
 
   const defaultImage = "https://images.unsplash.com/photo-149883716733f-56516b530f4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80";
+  // Generate a dynamic AI image based on the recipe name
+  const dynamicImage = `https://image.pollinations.ai/prompt/delicious%20food%20dish%20${encodeURIComponent(recipe.name)}?width=800&height=600&nologo=true`;
 
   return (
-    <article className="bg-surface rounded-lg border border-border shadow-sm hover:shadow transition-shadow duration-200 overflow-hidden flex flex-col sm:flex-row cursor-pointer group">
-      <div className="w-full sm:w-48 h-48 sm:h-auto relative overflow-hidden bg-surface-alt shrink-0">
+    <article className="bg-surface rounded-lg border border-border shadow-sm hover:shadow transition-shadow duration-200 overflow-hidden flex flex-col cursor-pointer group h-full">
+      <div className="w-full h-48 sm:h-56 relative overflow-hidden bg-surface-alt shrink-0">
         <img 
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-          src={recipe.imageUrl || defaultImage}
+          src={recipe.imageUrl || dynamicImage || defaultImage}
           alt={recipe.name}
+          loading="lazy"
         />
-        <div className="absolute top-3 right-3 sm:top-auto sm:bottom-3 sm:right-3 bg-surface/90 backdrop-blur-sm px-2 py-1 rounded border border-border">
+        <div className="absolute top-3 right-3 bg-surface/90 backdrop-blur-sm px-2 py-1 rounded border border-border">
           <span className="font-body-sm text-xs font-medium text-on-background">₹{cost?.toFixed(2) || '0.00'}</span>
         </div>
       </div>
-      <div className="p-4 sm:p-6 flex flex-col flex-grow">
-        <div className="flex items-center gap-2 mb-3">
+      <div className="p-4 sm:p-6 flex flex-col flex-grow relative">
+        {/* Refresh Button */}
+        {onRefresh && (
+          <button 
+            onClick={(e) => { e.stopPropagation(); onRefresh(recipe.mealType.toLowerCase()); }}
+            disabled={isRefreshing}
+            className="absolute top-4 right-4 p-2 rounded-full bg-surface-variant text-text-secondary hover:text-primary hover:bg-primary/10 transition-colors disabled:opacity-50"
+            title="Get a different meal for this slot"
+          >
+            <span className={`material-symbols-outlined text-[20px] ${isRefreshing ? 'animate-spin' : ''}`}>
+              refresh
+            </span>
+          </button>
+        )}
+
+        <div className="flex items-center gap-2 mb-3 pr-10">
           <span className="bg-surface-alt text-text-secondary px-3 py-1 rounded-full font-label-caps text-label-caps">{recipe.mealType}</span>
           {(recipe.prepTime === 0 || recipe.cookTime === 0) && (
             <span className="bg-surface-alt text-text-secondary px-3 py-1 rounded-full font-label-caps text-label-caps">Prep Ahead</span>
           )}
         </div>
-        <h3 className="font-h2 text-xl font-bold text-on-background mb-2 group-hover:text-primary transition-colors">{recipe.name}</h3>
+        <h3 className="font-h2 text-xl font-bold text-on-background mb-2 group-hover:text-primary transition-colors pr-10">{recipe.name}</h3>
         <p className="font-body-sm text-body-sm text-text-secondary mb-4 line-clamp-2">{recipe.description || 'A delicious and healthy meal.'}</p>
         <div className="flex items-center gap-4 mb-4 border-b border-border pb-4">
           <div className="flex items-center gap-1.5 text-text-secondary bg-surface-alt px-2 py-1 rounded">
@@ -68,8 +85,15 @@ const RecipeCard = ({ recipe, cost, pantryUsed }) => {
 };
 
 const MealPlanView = () => {
-  const { planData } = usePlan();
+  const { planData, refreshMeal } = usePlan();
   const navigate = useNavigate();
+  const [refreshingMeal, setRefreshingMeal] = React.useState(null);
+
+  const handleRefresh = async (mealType) => {
+    setRefreshingMeal(mealType);
+    await refreshMeal(planData._id || planData.planId, mealType);
+    setRefreshingMeal(null);
+  };
 
   if (!planData) {
     return (
@@ -122,10 +146,10 @@ const MealPlanView = () => {
       </div>
 
       {/* Meal Cards Grid */}
-      <div className="flex flex-col gap-4">
-        <RecipeCard recipe={meals?.breakfast} cost={perMealCost?.Breakfast} pantryUsed={pantryUsed} />
-        <RecipeCard recipe={meals?.lunch} cost={perMealCost?.Lunch} pantryUsed={pantryUsed} />
-        <RecipeCard recipe={meals?.dinner} cost={perMealCost?.Dinner} pantryUsed={pantryUsed} />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <RecipeCard recipe={meals?.breakfast} cost={perMealCost?.Breakfast} pantryUsed={pantryUsed} onRefresh={handleRefresh} isRefreshing={refreshingMeal === 'breakfast'} />
+        <RecipeCard recipe={meals?.lunch} cost={perMealCost?.Lunch} pantryUsed={pantryUsed} onRefresh={handleRefresh} isRefreshing={refreshingMeal === 'lunch'} />
+        <RecipeCard recipe={meals?.dinner} cost={perMealCost?.Dinner} pantryUsed={pantryUsed} onRefresh={handleRefresh} isRefreshing={refreshingMeal === 'dinner'} />
       </div>
     </div>
   );

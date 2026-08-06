@@ -6,6 +6,8 @@ import CookingTimeline from '../components/CookingTimeline';
 import PlanHistory from '../components/PlanHistory';
 import PantryInventory from '../components/PantryInventory';
 
+import ProfileSettings from '../components/ProfileSettings';
+
 const DashboardPage = () => {
   const [currentTab, setCurrentTab] = useState('planner');
 
@@ -16,6 +18,7 @@ const DashboardPage = () => {
       {currentTab === 'timeline' && <CookingTimeline />}
       {currentTab === 'history' && <PlanHistory />}
       {currentTab === 'pantry' && <PantryInventory />}
+      {currentTab === 'profile' && <ProfileSettings />}
     </DashboardLayout>
   );
 };

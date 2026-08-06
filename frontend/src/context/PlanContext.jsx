@@ -52,8 +52,34 @@ export const PlanProvider = ({ children }) => {
     }
   };
 
+  const refreshMeal = async (planId, mealType) => {
+    setIsLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:5000/api/plan/${planId}/refresh-meal`, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify({ mealType })
+      });
+      const data = await response.json();
+      if (data.success) {
+        setPlanData(data.data);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error refreshing meal:', error);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <PlanContext.Provider value={{ planData, setPlanData, generatePlan, isLoading }}>
+    <PlanContext.Provider value={{ planData, setPlanData, generatePlan, refreshMeal, isLoading }}>
       {children}
     </PlanContext.Provider>
   );

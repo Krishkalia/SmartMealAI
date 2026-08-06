@@ -12,6 +12,11 @@ const PlanSchema = new mongoose.Schema({
     lunch: { type: mongoose.Schema.Types.ObjectId, ref: 'Recipe' },
     dinner: { type: mongoose.Schema.Types.ObjectId, ref: 'Recipe' }
   },
+  perMealCost: {
+    Breakfast: { type: Number, default: 0 },
+    Lunch: { type: Number, default: 0 },
+    Dinner: { type: Number, default: 0 }
+  },
   aiMessage: { type: String },
   shoppingList: { type: mongoose.Schema.Types.Mixed }, // Structured categories or flat
   pantryUsed: [{

@@ -7,5 +7,6 @@ router.post('/generate', protect, planController.generatePlan);
 router.post('/scan-pantry', protect, planController.scanPantry);
 router.get('/user/history', protect, planController.getUserPlans);
 router.get('/:id', protect, planController.getPlan);
+router.put('/:id/refresh-meal', protect, planController.refreshMeal);
 
 module.exports = router;

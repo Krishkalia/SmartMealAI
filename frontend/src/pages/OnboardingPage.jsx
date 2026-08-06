@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePlan } from '../context/PlanContext';
+import { useAuth } from '../context/AuthContext';
 import { Loader2 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
@@ -10,6 +11,7 @@ const MySwal = withReactContent(Swal);
 const OnboardingPage = () => {
   const navigate = useNavigate();
   const { generatePlan, isLoading } = usePlan();
+  const { updatePreferences } = useAuth();
   
   const [household, setHousehold] = useState(2);
   const [pantryItems, setPantryItems] = useState([]);
@@ -94,6 +96,8 @@ const OnboardingPage = () => {
     if (result.isConfirmed) {
       const success = await generatePlan(preferences);
       if (success) {
+        // Save to user profile
+        await updatePreferences(preferences);
         toast.success('Meal plan generated successfully!');
         navigate('/dashboard');
       } else {
@@ -108,7 +112,7 @@ const OnboardingPage = () => {
         <h1 className="font-h1 text-h1 font-bold text-primary">SmartMeal AI</h1>
       </header>
 
-      <main className="py-section-gap-sm px-4 md:px-margin max-w-2xl mx-auto w-full">
+      <main className="py-section-gap-sm px-4 md:px-margin max-w-3xl mx-auto w-full">
         <div className="mb-8 text-center">
           <h2 className="font-h1 text-[32px] md:text-hero text-on-surface leading-tight mb-4">Tell us how you eat.</h2>
           <p className="font-body-lg text-body-lg text-text-secondary">We'll craft a plan that fits your life, your pantry, and your budget.</p>
@@ -196,9 +200,9 @@ const OnboardingPage = () => {
                 <label className="font-label-caps text-label-caps uppercase text-text-secondary block" htmlFor="budget">Daily Budget</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-secondary font-body-lg text-body-lg">
-                    $
+                    ₹
                   </div>
-                  <input className="block w-full pl-7 pr-3 py-2 border border-border rounded-lg bg-surface text-on-background font-body-lg text-body-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary" id="budget" min="0" name="budget" placeholder="Optional" step="0.50" type="number" />
+                  <input className="block w-full pl-7 pr-3 py-2 border border-border rounded-lg bg-surface text-on-background font-body-lg text-body-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary" id="budget" min="0" name="budget" placeholder="Optional" step="1" type="number" />
                 </div>
               </div>
               
