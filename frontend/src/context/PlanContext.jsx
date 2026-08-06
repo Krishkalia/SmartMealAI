@@ -78,8 +78,36 @@ export const PlanProvider = ({ children }) => {
     }
   };
 
+  const checkAndLoadTodayPlan = async () => {
+    if (planData) return;
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      setIsLoading(true);
+      const response = await fetch('http://localhost:5000/api/plan/user/history', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const data = await response.json();
+      if (data.success && data.data.length > 0) {
+        const latestPlan = data.data[0];
+        const todayStr = new Date().toDateString();
+        const planDateStr = new Date(latestPlan.createdAt).toDateString();
+        
+        if (todayStr === planDateStr) {
+          setPlanData(latestPlan);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching today plan:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <PlanContext.Provider value={{ planData, setPlanData, generatePlan, refreshMeal, isLoading }}>
+    <PlanContext.Provider value={{ planData, setPlanData, generatePlan, refreshMeal, checkAndLoadTodayPlan, isLoading }}>
       {children}
     </PlanContext.Provider>
   );

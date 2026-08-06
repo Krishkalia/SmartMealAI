@@ -33,7 +33,7 @@ const PantryInventory = () => {
   };
 
   const handleAddPantryItem = () => {
-    savePantry([...pantryItems, { name: '', qty: 1, unit: 'pcs' }]);
+    savePantry([{ name: '', qty: 1, unit: 'pcs' }, ...pantryItems]);
   };
 
   const handlePantryChange = (index, field, value) => {
@@ -45,6 +45,13 @@ const PantryInventory = () => {
   const removePantryItem = (indexToRemove) => {
     savePantry(pantryItems.filter((_, index) => index !== indexToRemove));
     toast.success('Item removed from pantry');
+  };
+
+  const handleClearAll = () => {
+    if (window.confirm('Are you sure you want to delete all items in your pantry?')) {
+      savePantry([]);
+      toast.success('All items deleted');
+    }
   };
 
   const handleSave = () => {
@@ -121,6 +128,52 @@ const PantryInventory = () => {
       </div>
 
       <div className="bg-surface rounded-xl border border-border p-6 shadow-sm">
+        
+        {/* Actions Top Bar */}
+        <div className="mb-6 border-b border-border pb-4 flex gap-4 flex-wrap justify-between items-center">
+          <div className="flex gap-4 flex-wrap items-center">
+            <button 
+              type="button" 
+              onClick={handleAddPantryItem}
+              className="flex items-center gap-1 text-primary hover:text-primary-hover font-body-sm font-semibold transition-colors"
+            >
+              <span className="material-symbols-outlined text-[18px]">add_circle</span>
+              Add manually
+            </button>
+            
+            <div className="w-px h-6 bg-border mx-2 hidden sm:block"></div>
+            
+            <input 
+              type="file" 
+              accept="image/*" 
+              capture="environment" 
+              ref={fileInputRef} 
+              onChange={handleImageUpload} 
+              className="hidden" 
+            />
+            <button 
+              type="button" 
+              onClick={() => fileInputRef.current.click()}
+              disabled={isScanning}
+              className="flex items-center gap-1 text-[#2B5C8F] hover:text-[#1A3D63] transition-colors font-body-sm font-semibold"
+            >
+              <span className="material-symbols-outlined text-[18px]">photo_camera</span>
+              {isScanning ? 'Scanning...' : 'Scan with AI'}
+            </button>
+          </div>
+          
+          {pantryItems.length > 0 && (
+            <button 
+              type="button" 
+              onClick={handleClearAll}
+              className="flex items-center gap-1 text-danger hover:text-danger/80 transition-colors font-body-sm font-semibold"
+            >
+              <span className="material-symbols-outlined text-[18px]">delete_sweep</span>
+              Bulk Delete
+            </button>
+          )}
+        </div>
+
         {pantryItems.length === 0 ? (
           <div className="text-center py-12">
             <span className="material-symbols-outlined text-4xl text-text-secondary mb-3">kitchen</span>
@@ -192,36 +245,6 @@ const PantryInventory = () => {
           </div>
         )}
         
-        <div className="mt-6 border-t border-border pt-4 flex gap-4 flex-wrap">
-          <button 
-            type="button" 
-            onClick={handleAddPantryItem}
-            className="flex items-center gap-1 text-primary hover:text-primary-hover font-body-sm font-semibold transition-colors"
-          >
-            <span className="material-symbols-outlined text-[18px]">add_circle</span>
-            Add manually
-          </button>
-          
-          <div className="w-px h-6 bg-border mx-2 hidden sm:block"></div>
-          
-          <input 
-            type="file" 
-            accept="image/*" 
-            capture="environment" 
-            ref={fileInputRef} 
-            onChange={handleImageUpload} 
-            className="hidden" 
-          />
-          <button 
-            type="button" 
-            onClick={() => fileInputRef.current.click()}
-            disabled={isScanning}
-            className="flex items-center gap-1 text-tertiary-container hover:text-tertiary transition-colors font-body-sm font-semibold"
-          >
-            <span className="material-symbols-outlined text-[18px]">photo_camera</span>
-            {isScanning ? 'Scanning...' : 'Scan with AI'}
-          </button>
-        </div>
       </div>
     </div>
   );

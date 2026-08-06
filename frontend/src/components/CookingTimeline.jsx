@@ -67,7 +67,7 @@ const CookingTimeline = () => {
       )}
 
       {/* Timeline Container */}
-      <div className="relative max-w-4xl mx-auto">
+      <div className="relative max-w-6xl mx-auto px-4 md:px-8">
         {/* The line */}
         <div className="absolute left-[20px] md:left-1/2 md:-translate-x-1/2 top-0 bottom-0 w-[2px] bg-border z-0"></div>
 

@@ -58,20 +58,23 @@ const RecipeDetailModal = ({ recipe, initialServings, onClose }) => {
   const imageUrl = recipe.imageUrl || dynamicImage || defaultImage;
 
   return (
-    <div className="fixed inset-0 z-[100] flex justify-center bg-background/80 backdrop-blur-sm overflow-y-auto p-4 md:p-8">
+    <div className="fixed inset-0 z-[100] bg-background/80 backdrop-blur-sm flex justify-center md:items-center md:p-8 overflow-hidden">
       {/* Container matches the standard project theme */}
-      <div className="w-full max-w-[1200px] min-h-[90vh] rounded-2xl bg-surface text-on-background font-body-lg flex flex-col relative pb-12 shadow-large border border-border overflow-hidden">
+      <div className="w-full h-full max-w-[1200px] md:h-[90vh] md:max-h-[90vh] bg-surface md:rounded-2xl text-on-background font-body-lg flex flex-col relative shadow-large border-0 md:border border-border overflow-hidden">
         
-        {/* Top Navigation / Close Button */}
+        {/* Top Navigation / Close Button (Fixed) */}
         <button 
           onClick={onClose}
-          className="absolute top-4 left-4 z-10 w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center hover:bg-border transition-colors text-on-surface"
+          className="absolute top-4 left-4 z-[110] w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center hover:bg-border transition-colors text-on-surface shadow-md"
         >
           <span className="material-symbols-outlined text-[20px]">close</span>
         </button>
 
-        {/* Header Section */}
-        <div className="flex flex-col md:flex-row w-full min-h-[400px]">
+        {/* Scrollable Content Container */}
+        <div className="flex-1 overflow-y-auto w-full pb-12 relative">
+          
+          {/* Header Section */}
+          <div className="flex flex-col md:flex-row w-full shrink-0 min-h-[400px]">
           
           {/* Header Left: Info */}
           <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center border-b md:border-b-0 border-r-0 md:border-r border-border">
@@ -140,7 +143,7 @@ const RecipeDetailModal = ({ recipe, initialServings, onClose }) => {
         </div>
 
         {/* Body Section */}
-        <div className="flex flex-col md:flex-row w-full px-4 md:px-12 py-8 gap-12 flex-1">
+        <div className="flex flex-col md:flex-row w-full px-4 md:px-12 py-8 gap-12 shrink-0">
           
           {/* Left Column: Ingredients */}
           <div className="w-full md:w-[35%] lg:w-[30%]">
@@ -235,6 +238,7 @@ const RecipeDetailModal = ({ recipe, initialServings, onClose }) => {
               </label>
             </div>
 
+            </div>
           </div>
         </div>
       </div>

@@ -8,13 +8,11 @@ const ProfileSettings = () => {
   const [isLoading, setIsLoading] = useState(false);
   
   const [household, setHousehold] = useState(2);
-  const [pantryItems, setPantryItems] = useState([]);
 
   // Initialize from user preferences
   useEffect(() => {
     if (user && user.preferences) {
       setHousehold(user.preferences.household || 2);
-      setPantryItems(user.preferences.pantry || []);
       
       // We will handle the radio/checkboxes by waiting a tick for DOM to render, 
       // or we can control them via state. Since the original used uncontrolled inputs, 
@@ -73,19 +71,7 @@ const ProfileSettings = () => {
     }
   }, [user]);
 
-  const handleAddPantryItem = () => {
-    setPantryItems([...pantryItems, { name: '', qty: 1, unit: 'pcs' }]);
-  };
 
-  const handlePantryChange = (index, field, value) => {
-    const newItems = [...pantryItems];
-    newItems[index][field] = value;
-    setPantryItems(newItems);
-  };
-
-  const removePantryItem = (indexToRemove) => {
-    setPantryItems(pantryItems.filter((_, index) => index !== indexToRemove));
-  };
 
   const handleSave = async () => {
     setIsLoading(true);
@@ -105,7 +91,7 @@ const ProfileSettings = () => {
     
     const preferences = {
       dietaryPreferences: [...selectedDiets, ...allAllergies].filter(p => p !== 'no restriction' && p !== 'none'),
-      pantry: pantryItems.filter(item => item.name.trim() !== ''),
+      pantry: user?.preferences?.pantry || [],
       budget,
       household,
       cuisine: selectedCuisine.filter(c => c !== 'mixed/no preference'),
@@ -123,10 +109,10 @@ const ProfileSettings = () => {
   };
 
   return (
-    <div className="p-4 md:p-margin max-w-2xl mx-auto w-full flex-1 pt-6 md:pt-12 pb-8">
+    <div className="p-4 md:p-margin max-w-4xl mx-auto w-full flex-1 pt-6 md:pt-12 pb-8">
       <div className="mb-8 border-b border-border pb-6">
         <h2 className="font-h1 text-[32px] md:text-hero text-on-surface leading-tight mb-2">Profile Preferences</h2>
-        <p className="font-body-lg text-body-lg text-text-secondary">Update your dietary needs, pantry inventory, and household budget.</p>
+        <p className="font-body-lg text-body-lg text-text-secondary">Update your dietary needs and household budget.</p>
       </div>
 
       <div className="bg-surface rounded-xl border border-border p-6 md:p-8 shadow-sm space-y-8">
@@ -232,71 +218,7 @@ const ProfileSettings = () => {
             </div>
           </div>
           
-          {/* 5. Pantry Items */}
-          <div className="space-y-3">
-            <label className="font-label-caps text-label-caps uppercase text-text-secondary block">What's in your pantry?</label>
-            <p className="font-body-sm text-body-sm text-text-secondary mt-1">We'll use what's already in your kitchen first.</p>
-            
-            <div className="space-y-3">
-              {pantryItems.map((item, index) => (
-                <div key={index} className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
-                  <input 
-                    className="flex-1 w-full sm:w-auto px-3 py-2 border border-border rounded-lg bg-surface text-on-background font-body-lg text-body-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary" 
-                    placeholder="Ingredient (e.g., Rice)" 
-                    type="text"
-                    value={item.name}
-                    onChange={(e) => handlePantryChange(index, 'name', e.target.value)}
-                  />
-                  <div className="flex gap-2 w-full sm:w-auto">
-                    <input 
-                      className="w-24 px-3 py-2 border border-border rounded-lg bg-surface text-on-background font-body-lg text-body-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary" 
-                      placeholder="Qty" 
-                      type="number"
-                      min="0"
-                      step="any"
-                      value={item.qty}
-                      onChange={(e) => handlePantryChange(index, 'qty', parseFloat(e.target.value) || '')}
-                    />
-                    <select
-                      className="w-28 px-3 py-2 border border-border rounded-lg bg-surface text-on-background font-body-lg text-body-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
-                      value={item.unit}
-                      onChange={(e) => handlePantryChange(index, 'unit', e.target.value)}
-                    >
-                      <option value="pcs">pcs</option>
-                      <option value="kg">kg</option>
-                      <option value="g">g</option>
-                      <option value="lbs">lbs</option>
-                      <option value="oz">oz</option>
-                      <option value="L">L</option>
-                      <option value="ml">ml</option>
-                      <option value="cups">cups</option>
-                      <option value="tbsp">tbsp</option>
-                      <option value="tsp">tsp</option>
-                      <option value="bottle">bottle</option>
-                    </select>
-                    <button 
-                      className="p-2 text-text-secondary hover:text-danger rounded-lg hover:bg-surface-variant transition-colors flex items-center justify-center border border-transparent" 
-                      type="button" 
-                      onClick={() => removePantryItem(index)}
-                      title="Remove Item"
-                    >
-                      <span className="material-symbols-outlined text-[20px]">delete</span>
-                    </button>
-                  </div>
-                </div>
-              ))}
-              
-              <button 
-                type="button" 
-                onClick={handleAddPantryItem}
-                className="flex items-center gap-1 text-primary hover:text-primary-hover font-body-sm font-semibold transition-colors mt-2"
-              >
-                <span className="material-symbols-outlined text-[18px]">add_circle</span>
-                Add another item
-              </button>
-            </div>
-          </div>
-          
+
           {/* Submit CTA */}
           <div className="pt-6 border-t border-border mt-8 flex justify-end">
             <button 

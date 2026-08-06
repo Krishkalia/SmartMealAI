@@ -12,6 +12,7 @@ const DashboardLayout = ({ children, currentTab, setCurrentTab }) => {
   const { user, logout } = useAuth();
   const { generatePlan, isLoading } = usePlan();
   const navigate = useNavigate();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   const handleLogout = () => {
     logout();
@@ -64,98 +65,102 @@ const DashboardLayout = ({ children, currentTab, setCurrentTab }) => {
   };
 
   return (
-    <div className="font-body-lg text-body-lg antialiased min-h-screen flex flex-col md:flex-row bg-background text-on-background selection:bg-primary-container selection:text-on-primary-container">
-      {/* Desktop SideNav */}
-      <nav className="hidden md:flex flex-col h-full w-64 fixed left-0 top-0 bg-surface border-r border-border shadow-sm py-8 px-4 z-40">
-        <div className="mb-12 px-2">
-          <h2 className="font-h2 text-h2 font-semibold text-primary">SmartMeal AI</h2>
-          <p className="font-body-sm text-body-sm text-text-secondary mt-1">Modern Editorial Planning</p>
-        </div>
-        
-        <ul className="flex flex-col gap-1 flex-grow overflow-y-auto">
-          {tabs.map(tab => (
-            <li key={tab.id}>
-              <button 
-                onClick={() => setCurrentTab(tab.id)}
-                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-md transition-colors font-body-sm font-medium ${currentTab === tab.id ? 'text-primary bg-primary/10' : 'text-text-secondary hover:text-primary hover:bg-surface-variant'}`}
-              >
-                <span className="material-symbols-outlined" style={currentTab === tab.id ? { fontVariationSettings: "'FILL' 1" } : {}}>{tab.icon}</span>
-                {tab.label}
-              </button>
-            </li>
-          ))}
-        </ul>
-        
-        <div className="mt-auto pt-8 border-t border-border">
+    <div className="font-body-lg text-body-lg antialiased h-screen flex flex-col bg-background text-on-background overflow-hidden selection:bg-primary-container selection:text-on-primary-container">
+      
+      {/* Top Navbar */}
+      <header className="w-full sticky top-0 z-50 bg-primary text-on-primary flex justify-between items-center px-4 py-3 shadow-md h-[60px]">
+        <div className="flex items-center gap-4">
           <button 
-            onClick={handleNewPlan}
-            disabled={isLoading}
-            className="w-full py-3 px-4 bg-primary text-on-primary rounded-full font-label-caps text-label-caps hover:bg-primary-hover transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            className="text-on-primary hover:bg-black/10 p-2 rounded-full transition-colors flex items-center justify-center"
           >
-            {isLoading && <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>progress_activity</span>}
-            New Plan
+            <span className="material-symbols-outlined">menu</span>
           </button>
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-[24px]">restaurant</span>
+            <h1 className="font-h2 text-xl font-bold hidden sm:block">SmartMeal</h1>
+          </div>
         </div>
-      </nav>
 
-      {/* Main Content Area */}
-      <main className="flex-grow md:ml-64 pb-24 md:pb-0 flex flex-col min-h-screen">
-        {/* Mobile TopAppBar */}
-        <header className="md:hidden w-full sticky top-0 z-50 bg-background border-b border-border flex justify-between items-center px-4 py-4">
-          <h1 className="font-h1 text-h1 font-bold text-primary">SmartMeal AI</h1>
-          <button onClick={() => setCurrentTab('profile')} className="text-primary hover:text-primary-hover transition-colors">
-            <span className="material-symbols-outlined">account_circle</span>
-          </button>
-        </header>
-
-        {/* Desktop TopAppBar */}
-        <header className="hidden md:flex w-full sticky top-0 z-40 bg-background/90 backdrop-blur-sm justify-between items-center px-margin py-4 max-w-max-width mx-auto transition-all duration-200 ease-in-out border-b border-border">
-          <h2 className="font-h2 text-h2 text-on-surface font-semibold capitalize">{tabs.find(t => t.id === currentTab)?.label || 'Dashboard'}</h2>
-          
-          <div className="flex-1 max-w-md mx-8 relative">
+        <div className="flex items-center gap-4 flex-1 justify-end max-w-2xl px-4">
+          <div className="relative w-full max-w-md hidden md:block">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <span className="material-symbols-outlined text-text-secondary text-[20px]">search</span>
+              <span className="material-symbols-outlined text-on-primary/70 text-[20px]">search</span>
             </div>
             <input 
               type="text" 
               placeholder="Search..." 
-              className="w-full bg-surface-alt border border-border rounded-md py-2 pl-10 pr-10 focus:outline-none focus:ring-1 focus:ring-primary focus:bg-surface transition-colors font-body-sm text-body-sm text-on-background placeholder:text-text-secondary"
+              className="w-full bg-black/10 border-none rounded-md py-1.5 pl-10 pr-10 focus:outline-none focus:ring-1 focus:ring-white focus:bg-black/20 transition-colors font-body-sm text-sm text-on-primary placeholder:text-on-primary/70"
             />
             <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-              <kbd className="hidden sm:inline-block border border-border rounded px-2 text-xs font-sans text-text-secondary bg-surface">/</kbd>
+              <kbd className="hidden sm:inline-block border border-white/20 rounded px-1.5 text-[10px] font-sans text-on-primary/70 bg-black/10">/</kbd>
+            </div>
+          </div>
+          <button 
+            title="Logout"
+            onClick={handleLogout}
+            className="text-on-primary hover:bg-black/10 p-2 rounded-md transition-colors flex items-center gap-2 font-body-sm text-sm"
+          >
+            <span className="material-symbols-outlined text-[20px]">logout</span>
+            <span className="hidden sm:block">Logout</span>
+          </button>
+        </div>
+      </header>
+
+      <div className="flex flex-1 overflow-hidden relative">
+        {/* Desktop SideNav */}
+        <nav className={`
+          flex flex-col h-full fixed left-0 top-[60px] bg-surface text-on-surface border-r border-border z-40 transition-all duration-300 ease-in-out overflow-hidden
+          ${isSidebarOpen ? 'w-64 translate-x-0' : 'w-0 -translate-x-full lg:translate-x-0'}
+          lg:relative lg:top-0
+        `}>
+          {/* Profile Section */}
+          <div className="p-4 border-b border-border flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg flex-shrink-0 shadow-sm">
+              {user?.name ? user.name.charAt(0).toUpperCase() : 'C'}
+            </div>
+            <div className="flex flex-col overflow-hidden">
+              <span className="font-medium text-on-surface truncate">{user?.name || 'Chef'}</span>
+              <span className="text-xs text-text-secondary truncate">{user?.email || 'Settings & Profile'}</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            <span className="text-text-secondary font-body-sm hidden lg:block">
-              {user?.name || 'Chef'}
-            </span>
+          <div className="p-4">
             <button 
-              title="Logout"
-              onClick={handleLogout}
-              className="text-text-secondary hover:text-danger transition-colors p-2 rounded-full flex items-center justify-center hover:bg-surface-variant"
+              onClick={handleNewPlan}
+              disabled={isLoading}
+              className="w-full py-2 px-4 bg-primary text-on-primary rounded-md font-body-sm text-sm font-medium hover:bg-primary-hover transition-colors shadow-sm disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              <span className="material-symbols-outlined">logout</span>
+              {isLoading ? (
+                <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>progress_activity</span>
+              ) : (
+                <span className="material-symbols-outlined text-[18px]">add</span>
+              )}
+              Create Plan
             </button>
           </div>
-        </header>
+          
+          <ul className="flex flex-col gap-1 flex-grow overflow-y-auto px-3 pb-4">
+            {tabs.map(tab => (
+              <li key={tab.id}>
+                <button 
+                  onClick={() => setCurrentTab(tab.id)}
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors font-body-sm text-sm ${currentTab === tab.id ? 'text-primary bg-primary-container' : 'text-text-secondary hover:text-primary hover:bg-surface-variant'}`}
+                >
+                  <span className="material-symbols-outlined text-[20px]" style={currentTab === tab.id ? { fontVariationSettings: "'FILL' 1" } : {}}>{tab.icon}</span>
+                  {tab.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </nav>
 
-        {children}
-      </main>
+        {/* Main Content Area */}
+        <main className="flex-grow overflow-y-auto bg-background text-on-background w-full h-full relative">
 
-      {/* Mobile BottomNavBar */}
-      <nav className="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 py-3 bg-surface rounded-t-xl shadow-large border-t border-border">
-        {tabs.map(tab => (
-          <button 
-            key={tab.id}
-            onClick={() => setCurrentTab(tab.id)}
-            className={`flex flex-col items-center justify-center p-2 rounded-lg scale-95 active:scale-90 transition-all ${currentTab === tab.id ? 'bg-primary-fixed text-on-primary-fixed rounded-full px-4' : 'text-on-surface-variant hover:bg-surface-container-high'}`}
-          >
-            <span className="material-symbols-outlined" style={currentTab === tab.id ? { fontVariationSettings: "'FILL' 1" } : {}}>{tab.icon}</span>
-            <span className="font-label-caps text-label-caps mt-1 text-[10px] sm:text-xs">{tab.label.split(' ')[0]}</span>
-          </button>
-        ))}
-      </nav>
+          {children}
+        </main>
+      </div>
     </div>
   );
 };

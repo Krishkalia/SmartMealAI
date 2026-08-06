@@ -264,10 +264,17 @@ class GeminiService {
       Given the following list of ingredients and their quantities, estimate the total cost for each line item in Indian Rupees (INR) based on current Indian market rates.
       Return the result as a strict JSON object where the keys are the exact ingredient names provided, and the values are the estimated cost (a number, in INR).
       Do not include the currency symbol in the values, just the number.
+      
+      CRITICAL PRICING RULES:
+      1. Water used for cooking should be priced at 0 INR (it is practically free).
+      2. Small quantities of basic spices (salt, pepper, etc.) should be priced very low (e.g., 0.5 to 2 INR).
+      3. Be realistic with the quantities provided.
+      
       Example output:
       {
         "Tomatoes": 40.5,
-        "Basmati Rice": 120
+        "Basmati Rice": 120,
+        "water": 0
       }
       
       Ingredients List:
