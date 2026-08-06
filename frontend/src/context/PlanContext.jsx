@@ -29,8 +29,10 @@ export const PlanProvider = ({ children }) => {
         const fullPlanData = await fullPlanResponse.json();
         if(fullPlanData.success) {
           setPlanData({ ...fullPlanData.data, aiMessage: data.data.aiMessage });
+          return true;
         }
       }
+      return false;
     } catch (error) {
       console.error('Error generating plan:', error);
       // Fallback for UI if backend isn't running
@@ -44,6 +46,7 @@ export const PlanProvider = ({ children }) => {
         },
         aiMessage: "Here is a simulated plan since the backend is unreachable."
       });
+      return false;
     } finally {
       setIsLoading(false);
     }

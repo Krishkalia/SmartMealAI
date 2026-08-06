@@ -7,11 +7,13 @@ import SignupPage from './pages/SignupPage';
 import { PlanProvider } from './context/PlanContext';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import { Toaster } from 'react-hot-toast';
 
 function App() {
   return (
     <AuthProvider>
       <PlanProvider>
+        <Toaster position="top-right" toastOptions={{ className: 'font-body-sm' }} />
         <Router>
           <Routes>
             <Route path="/" element={<LandingPage />} />

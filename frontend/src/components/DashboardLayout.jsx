@@ -28,14 +28,14 @@ const DashboardLayout = ({ children, currentTab, setCurrentTab }) => {
           <p className="font-body-sm text-body-sm text-text-secondary mt-1">Modern Editorial Planning</p>
         </div>
         
-        <ul className="flex flex-col gap-2 flex-grow">
+        <ul className="flex flex-col gap-1 flex-grow">
           {tabs.map(tab => (
             <li key={tab.id}>
               <button 
                 onClick={() => setCurrentTab(tab.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${currentTab === tab.id ? 'text-primary font-bold bg-primary-container/10 border-r-4 border-primary' : 'text-text-secondary hover:text-primary hover:bg-surface-variant'}`}
+                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-md transition-colors font-body-sm font-medium ${currentTab === tab.id ? 'text-primary bg-primary/10' : 'text-text-secondary hover:text-primary hover:bg-surface-variant'}`}
               >
-                <span className="material-symbols-outlined">{tab.icon}</span>
+                <span className="material-symbols-outlined" style={currentTab === tab.id ? { fontVariationSettings: "'FILL' 1" } : {}}>{tab.icon}</span>
                 {tab.label}
               </button>
             </li>
@@ -43,7 +43,10 @@ const DashboardLayout = ({ children, currentTab, setCurrentTab }) => {
         </ul>
         
         <div className="mt-auto pt-8 border-t border-border">
-          <button className="w-full py-3 px-4 bg-primary text-on-primary rounded-full font-label-caps text-label-caps hover:bg-primary-hover transition-colors">
+          <button 
+            onClick={() => navigate('/onboarding')}
+            className="w-full py-3 px-4 bg-primary text-on-primary rounded-full font-label-caps text-label-caps hover:bg-primary-hover transition-colors"
+          >
             New Plan
           </button>
         </div>
@@ -60,19 +63,31 @@ const DashboardLayout = ({ children, currentTab, setCurrentTab }) => {
         </header>
 
         {/* Desktop TopAppBar */}
-        <header className="hidden md:flex w-full sticky top-0 z-40 bg-background/90 backdrop-blur-sm justify-between items-center px-margin py-6 max-w-max-width mx-auto transition-all duration-200 ease-in-out">
-          <h2 className="font-h1 text-h1 text-primary capitalize">{tabs.find(t => t.id === currentTab)?.label || 'Dashboard'}</h2>
+        <header className="hidden md:flex w-full sticky top-0 z-40 bg-background/90 backdrop-blur-sm justify-between items-center px-margin py-4 max-w-max-width mx-auto transition-all duration-200 ease-in-out border-b border-border">
+          <h2 className="font-h2 text-h2 text-on-surface font-semibold capitalize">{tabs.find(t => t.id === currentTab)?.label || 'Dashboard'}</h2>
+          
+          <div className="flex-1 max-w-md mx-8 relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <span className="material-symbols-outlined text-text-secondary text-[20px]">search</span>
+            </div>
+            <input 
+              type="text" 
+              placeholder="Search..." 
+              className="w-full bg-surface-alt border border-border rounded-md py-2 pl-10 pr-10 focus:outline-none focus:ring-1 focus:ring-primary focus:bg-surface transition-colors font-body-sm text-body-sm text-on-background placeholder:text-text-secondary"
+            />
+            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+              <kbd className="hidden sm:inline-block border border-border rounded px-2 text-xs font-sans text-text-secondary bg-surface">/</kbd>
+            </div>
+          </div>
+
           <div className="flex items-center gap-4">
-            <span className="text-on-surface-variant font-body-sm hidden lg:block">
-              Welcome, {user?.name || 'Chef'}
+            <span className="text-text-secondary font-body-sm hidden lg:block">
+              {user?.name || 'Chef'}
             </span>
-            <button className="text-on-surface-variant hover:text-primary transition-colors">
-              <span className="material-symbols-outlined text-2xl">search</span>
-            </button>
             <button 
               title="Logout"
               onClick={handleLogout}
-              className="text-primary dark:text-inverse-primary hover:text-primary-hover transition-colors p-2 rounded-full flex items-center justify-center bg-surface hover:bg-surface-variant border border-border shadow-sm"
+              className="text-text-secondary hover:text-danger transition-colors p-2 rounded-full flex items-center justify-center hover:bg-surface-variant"
             >
               <span className="material-symbols-outlined">logout</span>
             </button>

@@ -1,7 +1,19 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import toast from 'react-hot-toast';
 
 const LandingHero = () => {
+  const [showDropdown, setShowDropdown] = useState(false);
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    setShowDropdown(false);
+    toast.success('Successfully logged out');
+  };
+
   return (
     <div className="bg-background text-on-background min-h-screen flex flex-col font-body-lg text-body-lg antialiased selection:bg-primary-container selection:text-on-primary-container">
       {/* TopAppBar */}
@@ -10,19 +22,49 @@ const LandingHero = () => {
           <div className="flex items-center gap-2">
             <span className="font-h1 text-h1 font-bold text-primary dark:text-primary-fixed">SmartMeal AI</span>
           </div>
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8">
-            <a className="text-primary font-bold border-b-2 border-primary pb-1" href="#">Home</a>
-            <a className="text-on-surface-variant font-normal hover:text-primary-hover transition-colors" href="#">Features</a>
-            <a className="text-on-surface-variant font-normal hover:text-primary-hover transition-colors" href="#">Testimonials</a>
-          </nav>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 relative">
             <button className="text-primary dark:text-inverse-primary hover:text-primary-hover transition-colors p-2 rounded-full flex items-center justify-center">
               <span className="material-symbols-outlined">search</span>
             </button>
-            <button className="text-primary dark:text-inverse-primary hover:text-primary-hover transition-colors p-2 rounded-full flex items-center justify-center">
-              <span className="material-symbols-outlined">account_circle</span>
-            </button>
+            <div className="relative">
+              <button 
+                onClick={() => setShowDropdown(!showDropdown)}
+                className="text-primary dark:text-inverse-primary hover:text-primary-hover transition-colors p-2 rounded-full flex items-center justify-center"
+              >
+                <span className="material-symbols-outlined">account_circle</span>
+              </button>
+              
+              {showDropdown && (
+                <div className="absolute right-0 mt-2 w-48 bg-surface border border-border rounded-xl shadow-lg py-2 z-50 font-body-sm text-body-sm text-on-surface">
+                  {user ? (
+                    <>
+                      <div className="px-4 py-2 border-b border-border">
+                        <p className="font-semibold">{user.name}</p>
+                        <p className="text-text-secondary text-xs truncate">{user.email}</p>
+                      </div>
+                      <Link to="/dashboard" className="block px-4 py-2 hover:bg-surface-variant transition-colors">
+                        Dashboard
+                      </Link>
+                      <button 
+                        onClick={handleLogout}
+                        className="w-full text-left px-4 py-2 text-danger hover:bg-error-container hover:text-on-error-container transition-colors"
+                      >
+                        Log out
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <Link to="/login" className="block px-4 py-2 hover:bg-surface-variant transition-colors">
+                        Log In
+                      </Link>
+                      <Link to="/signup" className="block px-4 py-2 hover:bg-surface-variant transition-colors">
+                        Sign Up
+                      </Link>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </header>

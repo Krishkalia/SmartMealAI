@@ -5,17 +5,28 @@ const PlanSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
   budget: { type: Number },
   totalCost: { type: Number },
+  isOverBudget: { type: Boolean },
+  budgetDifference: { type: Number },
   meals: {
     breakfast: { type: mongoose.Schema.Types.ObjectId, ref: 'Recipe' },
     lunch: { type: mongoose.Schema.Types.ObjectId, ref: 'Recipe' },
     dinner: { type: mongoose.Schema.Types.ObjectId, ref: 'Recipe' }
   },
-  shoppingList: [{
-    ingredientName: { type: String },
-    qty: { type: Number },
-    unit: { type: String },
-    estimatedCost: { type: Number },
-    category: { type: String }
+  aiMessage: { type: String },
+  shoppingList: { type: mongoose.Schema.Types.Mixed }, // Structured categories or flat
+  pantryUsed: [{
+    name: { type: String },
+    qtyUsed: { type: Number },
+    unit: { type: String }
+  }],
+  substitutions: { type: mongoose.Schema.Types.Mixed }, // object mapping ingredientName -> {substitute, ratio, notes}
+  timeline: [{
+    timeOffset: { type: Number },
+    mealType: { type: String },
+    instruction: { type: String },
+    phrasedInstruction: { type: String },
+    duration: { type: Number },
+    type: { type: String }
   }]
 });
 

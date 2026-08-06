@@ -1,9 +1,10 @@
+require('dotenv').config();
 const mongoose = require('mongoose');
 const Recipe = require('./models/Recipe');
 const Ingredient = require('./models/Ingredient');
 const Substitution = require('./models/Substitution');
 
-const MONGO_URI = 'mongodb://localhost:27017/smartmeal_ai';
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/smartmeal_ai';
 
 async function seed() {
   await mongoose.connect(MONGO_URI);

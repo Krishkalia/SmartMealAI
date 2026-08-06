@@ -1,23 +1,27 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setIsLoading(true);
     
     const res = await login(email, password);
+    setIsLoading(false);
     if (res.success) {
+      toast.success('Successfully logged in!');
       navigate('/dashboard');
     } else {
-      setError(res.message || 'Failed to login');
+      toast.error(res.message || 'Failed to login');
     }
   };
 
@@ -34,12 +38,6 @@ const LoginPage = () => {
             <p className="font-body-lg text-body-lg text-text-secondary">Log in to view your meal plans.</p>
           </div>
           
-          {error && (
-            <div className="mb-6 p-3 bg-error-container text-on-error-container rounded-lg font-body-sm text-body-sm">
-              {error}
-            </div>
-          )}
-
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-2">
               <label className="font-label-caps text-label-caps uppercase text-text-secondary block">Email</label>
@@ -64,10 +62,12 @@ const LoginPage = () => {
             </div>
 
             <button 
-              className="w-full bg-primary hover:bg-primary-hover text-on-primary font-body-lg text-body-lg font-semibold py-3 px-6 rounded-full transition-colors shadow-sm hover:shadow-md mt-4" 
+              className="w-full bg-primary hover:bg-primary-hover text-on-primary font-body-lg text-body-lg font-semibold py-3 px-6 rounded-full transition-colors shadow-sm hover:shadow-md mt-4 flex items-center justify-center disabled:opacity-70" 
               type="submit"
+              disabled={isLoading}
             >
-              Log In
+              {isLoading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
+              {isLoading ? 'Logging in...' : 'Log In'}
             </button>
           </form>
 

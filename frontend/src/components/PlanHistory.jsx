@@ -1,6 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { usePlan } from '../context/PlanContext';
+import { Loader2 } from 'lucide-react';
+import Swal from 'sweetalert2';
+import withReactContent from 'sweetalert2-react-content';
+import toast from 'react-hot-toast';
+
+const MySwal = withReactContent(Swal);
 
 const PlanHistory = () => {
   const [history, setHistory] = useState([]);
@@ -22,6 +28,7 @@ const PlanHistory = () => {
         }
       } catch (error) {
         console.error('Failed to fetch history:', error);
+        toast.error('Failed to load history');
       } finally {
         setLoading(false);
       }
@@ -29,16 +36,30 @@ const PlanHistory = () => {
     if (token) fetchHistory();
   }, [token]);
 
-  const loadPlan = (plan) => {
-    setPlanData(plan);
-    // Ideally this would switch the tab to 'planner', but that state is held in DashboardPage.
-    // In a real app we'd pass a callback or elevate the state.
-    // For now, it will load into context, and user can click 'Meal Planner' to see it.
-    alert('Plan loaded! Click "Meal Planner" tab to view it.');
+  const loadPlan = async (plan) => {
+    const result = await MySwal.fire({
+      title: 'Reload this plan?',
+      text: "This will overwrite your current meal plan in the planner.",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#9f2c05',
+      cancelButtonColor: '#8c7169',
+      confirmButtonText: 'Yes, load it!'
+    });
+
+    if (result.isConfirmed) {
+      setPlanData(plan);
+      toast.success('Plan loaded! Click "Meal Planner" tab to view it.');
+    }
   };
 
   if (loading) {
-    return <div className="p-margin text-center text-text-secondary">Loading history...</div>;
+    return (
+      <div className="p-margin flex flex-col items-center justify-center text-primary h-64">
+        <Loader2 className="w-8 h-8 animate-spin mb-4" />
+        <p className="font-body-lg text-body-lg">Loading history...</p>
+      </div>
+    );
   }
 
   return (

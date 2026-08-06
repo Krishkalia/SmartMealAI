@@ -1,67 +1,127 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePlan } from '../context/PlanContext';
+import { Loader2 } from 'lucide-react';
+import Swal from 'sweetalert2';
+import withReactContent from 'sweetalert2-react-content';
+import toast from 'react-hot-toast';
 
+const MySwal = withReactContent(Swal);
 const OnboardingPage = () => {
   const navigate = useNavigate();
   const { generatePlan, isLoading } = usePlan();
   
   const [household, setHousehold] = useState(2);
-  const [pantryItem, setPantryItem] = useState('');
-  const [pantryItems, setPantryItems] = useState(['Olive Oil', 'Basmati Rice']);
+  const [pantryItems, setPantryItems] = useState([]);
 
-  const handlePantryKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      if (pantryItem.trim() !== '') {
-        setPantryItems([...pantryItems, pantryItem.trim()]);
-        setPantryItem('');
+  React.useEffect(() => {
+    const saved = localStorage.getItem('smartmeal_pantry');
+    if (saved) {
+      try {
+        setPantryItems(JSON.parse(saved));
+      } catch (e) {
+        console.error('Failed to parse pantry data', e);
       }
+    } else {
+      setPantryItems([
+        { name: 'Olive Oil', qty: 1, unit: 'bottle' },
+        { name: 'Basmati Rice', qty: 2, unit: 'kg' }
+      ]);
     }
+  }, []);
+
+  const savePantry = (items) => {
+    setPantryItems(items);
+    localStorage.setItem('smartmeal_pantry', JSON.stringify(items));
+  };
+
+  const handleAddPantryItem = () => {
+    savePantry([...pantryItems, { name: '', qty: 1, unit: 'pcs' }]);
+  };
+
+  const handlePantryChange = (index, field, value) => {
+    const newItems = [...pantryItems];
+    newItems[index][field] = value;
+    savePantry(newItems);
   };
 
   const removePantryItem = (indexToRemove) => {
-    setPantryItems(pantryItems.filter((_, index) => index !== indexToRemove));
+    savePantry(pantryItems.filter((_, index) => index !== indexToRemove));
   };
 
   const handleGeneratePlan = async () => {
     // Collect all diet prefs
     const selectedDiets = Array.from(document.querySelectorAll('input[name="diet"]:checked')).map(el => el.value);
     const selectedAllergies = Array.from(document.querySelectorAll('input[name="allergy"]:checked')).map(el => el.value);
-    const budget = parseFloat(document.getElementById('budget').value) || 25.00;
+    const customAllergies = document.getElementById('customAllergies').value.split(',').map(s => s.trim()).filter(Boolean);
+    const allAllergies = [...selectedAllergies, ...customAllergies];
+    
+    const budgetInput = document.getElementById('budget').value;
+    const budget = budgetInput ? parseFloat(budgetInput) : null;
+    
+    // New fields
+    const selectedCuisine = Array.from(document.querySelectorAll('input[name="cuisine"]:checked')).map(el => el.value);
+    const cookTime = document.querySelector('input[name="cookTime"]:checked')?.value || 'Standard';
     
     const preferences = {
-      dietaryPreferences: [...selectedDiets, ...selectedAllergies].filter(p => p !== 'no restriction'),
-      pantry: pantryItems.map(item => ({ name: item, qty: 1, unit: 'unit' })),
+      dietaryPreferences: [...selectedDiets, ...allAllergies].filter(p => p !== 'no restriction' && p !== 'none'),
+      pantry: pantryItems.filter(item => item.name.trim() !== ''),
       budget,
-      household
+      household,
+      cuisine: selectedCuisine.filter(c => c !== 'mixed/no preference'),
+      cookTime
     };
     
-    await generatePlan(preferences);
-    navigate('/dashboard');
-  };
+    const result = await MySwal.fire({
+      title: 'Ready to cook?',
+      text: "We'll generate a personalized meal plan based on your preferences.",
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, generate it!',
+      cancelButtonText: 'Cancel',
+      buttonsStyling: false,
+      customClass: {
+        container: 'font-sans',
+        popup: 'rounded-2xl border border-border shadow-large bg-surface',
+        title: 'font-h2 text-h2 font-bold text-on-background',
+        htmlContainer: 'font-body-lg text-text-secondary mt-2',
+        confirmButton: 'bg-primary hover:bg-primary-hover text-on-primary font-label-caps text-label-caps rounded-full px-6 py-2.5 transition-colors shadow-sm',
+        cancelButton: 'bg-surface-variant hover:bg-border text-on-surface-variant font-label-caps text-label-caps rounded-full px-6 py-2.5 transition-colors ml-3',
+        icon: 'text-primary border-primary'
+      }
+    });
 
+    if (result.isConfirmed) {
+      const success = await generatePlan(preferences);
+      if (success) {
+        toast.success('Meal plan generated successfully!');
+        navigate('/dashboard');
+      } else {
+        toast.error('Failed to generate meal plan.');
+      }
+    }
+  };
   return (
-    <div className="min-h-screen flex flex-col font-body-lg antialiased bg-background text-on-background selection:bg-primary-container selection:text-on-primary-container">
-      {/* Top App Bar (Suppress Navigation - Onboarding Intent) */}
-      <header className="w-full sticky top-0 z-50 bg-background flex justify-between items-center px-margin py-4 max-w-max-width mx-auto border-b border-border dark:border-outline-variant">
-        <div className="font-h1 text-h1 font-bold text-primary">SmartMeal AI</div>
+    <div className="min-h-screen font-body-lg antialiased bg-background text-on-background selection:bg-primary-container selection:text-on-primary-container">
+      {/* TopAppBar */}
+      <header className="w-full sticky top-0 z-50 bg-background/90 backdrop-blur-sm flex justify-between items-center px-margin py-4 max-w-max-width mx-auto border-b border-border transition-all">
+        <h1 className="font-h1 text-h1 font-bold text-primary">SmartMeal AI</h1>
       </header>
-      
-      {/* Main Content Canvas */}
-      <main className="flex-grow flex items-center justify-center py-section-gap-sm px-4 md:px-margin max-w-max-width mx-auto w-full">
-        <div className="w-full max-w-2xl bg-surface rounded-xl border border-border p-6 md:p-10 shadow-sm md:shadow-md">
-          <div className="mb-8 text-center">
-            <h1 className="font-hero-mobile text-hero-mobile md:font-hero md:text-h1 text-primary mb-2">Let's set your table</h1>
-            <p className="font-body-lg text-body-lg text-text-secondary">Tell us a bit about how you eat, and we'll craft the perfect plan.</p>
-          </div>
+
+      <main className="py-section-gap-sm px-4 md:px-margin max-w-2xl mx-auto w-full">
+        <div className="mb-8 text-center">
+          <h2 className="font-h1 text-[32px] md:text-hero text-on-surface leading-tight mb-4">Tell us how you eat.</h2>
+          <p className="font-body-lg text-body-lg text-text-secondary">We'll craft a plan that fits your life, your pantry, and your budget.</p>
+        </div>
+
+        <div className="bg-surface rounded-xl border border-border p-6 md:p-8 shadow-sm space-y-8">
           
           <form className="space-y-8" onSubmit={(e) => e.preventDefault()}>
             {/* 1. Dietary Preference */}
             <div className="space-y-3">
               <label className="font-label-caps text-label-caps uppercase text-text-secondary">Dietary Preference</label>
               <div className="flex flex-wrap gap-2">
-                {['Vegetarian', 'Non-Vegetarian', 'Vegan', 'Keto', 'No Restriction'].map((diet) => (
+                {['Vegetarian', 'Vegan', 'Non-Vegetarian', 'Eggetarian', 'No Restriction'].map((diet) => (
                   <label key={diet} className="cursor-pointer">
                     <input className="peer sr-only" name="diet" type="radio" value={diet.toLowerCase()} defaultChecked={diet === 'No Restriction'} />
                     <div className="px-4 py-2 rounded-full border border-border text-on-background font-body-sm text-body-sm peer-checked:bg-primary-container peer-checked:text-on-primary-container peer-checked:border-primary-container transition-colors hover:bg-surface-variant">
@@ -90,6 +150,44 @@ const OnboardingPage = () => {
                   </label>
                 ))}
               </div>
+              <div className="mt-2">
+                <input 
+                  className="block w-full px-4 py-2 border border-border rounded-lg bg-surface text-on-background font-body-sm text-body-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary" 
+                  id="customAllergies" 
+                  placeholder="Other allergies (comma separated, e.g., soy, sesame)" 
+                  type="text" 
+                />
+              </div>
+            </div>
+            
+            {/* 2.5 Cuisine Preferences */}
+            <div className="space-y-3">
+              <label className="font-label-caps text-label-caps uppercase text-text-secondary">Cuisine Preference</label>
+              <div className="flex flex-wrap gap-2">
+                {['Indian', 'Continental', 'Asian', 'Mexican', 'Mixed/No preference'].map((cuisine) => (
+                  <label key={cuisine} className="cursor-pointer">
+                    <input className="peer sr-only" name="cuisine" type="radio" value={cuisine.toLowerCase()} defaultChecked={cuisine === 'Mixed/No preference'} />
+                    <div className="px-4 py-2 rounded-full border border-border text-on-background font-body-sm text-body-sm peer-checked:bg-primary-container peer-checked:text-on-primary-container peer-checked:border-primary-container transition-colors hover:bg-surface-variant">
+                      {cuisine}
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* 2.6 Cooking Time */}
+            <div className="space-y-3">
+              <label className="font-label-caps text-label-caps uppercase text-text-secondary">Cooking Time Available</label>
+              <div className="flex flex-wrap gap-2">
+                {['Quick <30 min/meal', 'Standard', 'Elaborate'].map((time) => (
+                  <label key={time} className="cursor-pointer">
+                    <input className="peer sr-only" name="cookTime" type="radio" value={time} defaultChecked={time === 'Standard'} />
+                    <div className="px-4 py-2 rounded-full border border-border text-on-background font-body-sm text-body-sm peer-checked:bg-primary-container peer-checked:text-on-primary-container peer-checked:border-primary-container transition-colors hover:bg-surface-variant">
+                      {time}
+                    </div>
+                  </label>
+                ))}
+              </div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -100,7 +198,7 @@ const OnboardingPage = () => {
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-secondary font-body-lg text-body-lg">
                     $
                   </div>
-                  <input className="block w-full pl-7 pr-3 py-2 border border-border rounded-lg bg-surface text-on-background font-body-lg text-body-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary" id="budget" min="0" name="budget" placeholder="25.00" step="0.50" type="number" />
+                  <input className="block w-full pl-7 pr-3 py-2 border border-border rounded-lg bg-surface text-on-background font-body-lg text-body-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary" id="budget" min="0" name="budget" placeholder="Optional" step="0.50" type="number" />
                 </div>
               </div>
               
@@ -121,41 +219,78 @@ const OnboardingPage = () => {
             
             {/* 5. Pantry Items */}
             <div className="space-y-3">
-              <label className="font-label-caps text-label-caps uppercase text-text-secondary block" htmlFor="pantry">What's in your pantry?</label>
+              <label className="font-label-caps text-label-caps uppercase text-text-secondary block">What's in your pantry?</label>
               <p className="font-body-sm text-body-sm text-text-secondary mt-1">We'll use what's already in your kitchen first.</p>
-              <div className="relative">
-                <input 
-                  className="block w-full px-3 py-2 border border-border rounded-lg bg-surface text-on-background font-body-lg text-body-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary mb-2" 
-                  id="pantry" 
-                  placeholder="e.g., Rice, Pasta, Olive Oil... (press enter)" 
-                  type="text"
-                  value={pantryItem}
-                  onChange={(e) => setPantryItem(e.target.value)}
-                  onKeyDown={handlePantryKeyDown}
-                />
-                
-                {/* Added tags */}
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {pantryItems.map((item, index) => (
-                    <span key={index} className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-surface-alt text-on-background font-body-sm text-body-sm">
-                      {item} 
-                      <button className="text-text-secondary hover:text-danger flex items-center" type="button" onClick={() => removePantryItem(index)}>
-                        <span className="material-symbols-outlined text-[14px]">close</span>
+              
+              <div className="space-y-3">
+                {pantryItems.map((item, index) => (
+                  <div key={index} className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+                    <input 
+                      className="flex-1 w-full sm:w-auto px-3 py-2 border border-border rounded-lg bg-surface text-on-background font-body-lg text-body-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary" 
+                      placeholder="Ingredient (e.g., Rice)" 
+                      type="text"
+                      value={item.name}
+                      onChange={(e) => handlePantryChange(index, 'name', e.target.value)}
+                    />
+                    <div className="flex gap-2 w-full sm:w-auto">
+                      <input 
+                        className="w-24 px-3 py-2 border border-border rounded-lg bg-surface text-on-background font-body-lg text-body-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary" 
+                        placeholder="Qty" 
+                        type="number"
+                        min="0"
+                        step="any"
+                        value={item.qty}
+                        onChange={(e) => handlePantryChange(index, 'qty', parseFloat(e.target.value) || '')}
+                      />
+                      <select
+                        className="w-28 px-3 py-2 border border-border rounded-lg bg-surface text-on-background font-body-lg text-body-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+                        value={item.unit}
+                        onChange={(e) => handlePantryChange(index, 'unit', e.target.value)}
+                      >
+                        <option value="pcs">pcs</option>
+                        <option value="kg">kg</option>
+                        <option value="g">g</option>
+                        <option value="lbs">lbs</option>
+                        <option value="oz">oz</option>
+                        <option value="L">L</option>
+                        <option value="ml">ml</option>
+                        <option value="cups">cups</option>
+                        <option value="tbsp">tbsp</option>
+                        <option value="tsp">tsp</option>
+                        <option value="bottle">bottle</option>
+                      </select>
+                      <button 
+                        className="p-2 text-text-secondary hover:text-danger rounded-lg hover:bg-surface-variant transition-colors flex items-center justify-center border border-transparent" 
+                        type="button" 
+                        onClick={() => removePantryItem(index)}
+                        title="Remove Item"
+                      >
+                        <span className="material-symbols-outlined text-[20px]">delete</span>
                       </button>
-                    </span>
-                  ))}
-                </div>
+                    </div>
+                  </div>
+                ))}
+                
+                <button 
+                  type="button" 
+                  onClick={handleAddPantryItem}
+                  className="flex items-center gap-1 text-primary hover:text-primary-hover font-body-sm font-semibold transition-colors mt-2"
+                >
+                  <span className="material-symbols-outlined text-[18px]">add_circle</span>
+                  Add another item
+                </button>
               </div>
             </div>
             
             {/* Submit CTA */}
             <div className="pt-6 border-t border-border mt-8">
               <button 
-                className="w-full bg-primary hover:bg-primary-hover text-on-primary font-body-lg text-body-lg font-semibold py-3 px-6 rounded-full transition-colors shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed" 
+                className="w-full bg-primary hover:bg-primary-hover text-on-primary font-body-lg text-body-lg font-semibold py-3 px-6 rounded-full transition-colors shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center" 
                 type="button"
                 onClick={handleGeneratePlan}
                 disabled={isLoading}
               >
+                {isLoading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
                 {isLoading ? 'Generating Plan...' : 'Generate My Plan'}
               </button>
             </div>
