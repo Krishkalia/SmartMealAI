@@ -27,6 +27,24 @@ const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/smartmeal_
 mongoose.connect(MONGO_URI)
   .then(() => {
     console.log('Connected to MongoDB');
-    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+      
+      // Keep-awake ping for Render (every 10 minutes)
+      const https = require('https');
+      const url = 'https://smartmealai.onrender.com/api/health';
+      
+      setInterval(() => {
+        https.get(url, (res) => {
+          if (res.statusCode === 200) {
+            console.log('Self health-check successful, server kept awake.');
+          } else {
+            console.log(`Self health-check failed with status code: ${res.statusCode}`);
+          }
+        }).on('error', (err) => {
+          console.error('Error during self health-check:', err.message);
+        });
+      }, 10 * 60 * 1000); // 10 minutes in milliseconds
+    });
   })
   .catch(err => console.error('MongoDB connection error:', err));
