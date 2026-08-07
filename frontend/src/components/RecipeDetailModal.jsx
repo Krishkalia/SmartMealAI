@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { usePlan } from '../context/PlanContext';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -104,7 +105,7 @@ const RecipeDetailModal = ({ recipe, initialServings, onClose }) => {
     }
   };
 
-  return (
+  const modalContent = (
     <div className="fixed inset-0 z-[100] bg-background/80 backdrop-blur-sm flex justify-center md:items-center md:p-8 overflow-hidden">
       {/* Container matches the standard project theme */}
       <div className="w-full h-full max-w-[1200px] md:h-[90vh] md:max-h-[90vh] bg-surface md:rounded-2xl text-on-background font-body-lg flex flex-col relative shadow-large border-0 md:border border-border overflow-hidden">
@@ -340,6 +341,8 @@ const RecipeDetailModal = ({ recipe, initialServings, onClose }) => {
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 };
 
 export default RecipeDetailModal;

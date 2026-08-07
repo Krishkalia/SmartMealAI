@@ -42,6 +42,8 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  width: 100%;
 }
 
 h1, h2, h3, h4, h5, h6, .display {
@@ -111,4 +113,10 @@ button {
 }
 .driver-popover-close-btn {
   color: var(--color-text-secondary);
+}
+
+/* Driver.js Mobile Responsiveness */
+.driver-popover {
+  max-width: 90vw !important;
+  min-width: 250px !important;
 }
