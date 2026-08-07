@@ -121,11 +121,11 @@ const RecipeDetailModal = ({ recipe, initialServings, onClose }) => {
         <div className="flex-1 overflow-y-auto w-full pb-12 relative">
           
           {/* Header Section */}
-          <div className="flex flex-col md:flex-row w-full shrink-0 min-h-[400px]">
+          <div className="flex flex-col-reverse md:flex-row w-full shrink-0 min-h-[400px]">
           
           {/* Header Left: Info */}
-          <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center border-b md:border-b-0 border-r-0 md:border-r border-border">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 font-h1 text-primary leading-tight">{recipe.name}</h1>
+          <div className="w-full md:w-1/2 p-6 pt-16 md:p-12 md:pt-12 flex flex-col justify-center border-b md:border-b-0 border-r-0 md:border-r border-border">
+            <h1 className="text-3xl md:text-5xl font-bold mb-4 font-h1 text-primary leading-tight">{recipe.name}</h1>
             
             {/* Stars */}
             <div className="flex items-center gap-1 mb-6 text-secondary">
@@ -134,12 +134,12 @@ const RecipeDetailModal = ({ recipe, initialServings, onClose }) => {
               ))}
             </div>
             
-            <p className="text-text-secondary text-lg mb-8 leading-relaxed font-body-lg">
+            <p className="text-text-secondary text-base md:text-lg mb-8 leading-relaxed font-body-lg">
               {recipe.description || 'A delicious, AI-crafted meal designed exactly for your tastes and pantry.'}
             </p>
             
             {/* Meta Info */}
-            <div className="flex items-center gap-8 text-sm">
+            <div className="flex flex-wrap items-center gap-4 md:gap-8 text-sm">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full border border-border bg-surface-alt flex items-center justify-center text-text-secondary">
                   <span className="material-symbols-outlined text-[18px]">calendar_today</span>
