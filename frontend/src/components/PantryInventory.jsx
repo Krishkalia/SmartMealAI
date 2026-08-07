@@ -180,18 +180,16 @@ const PantryInventory = () => {
       <div className="bg-surface rounded-xl border border-border p-6 shadow-sm">
         
         {/* Actions Top Bar */}
-        <div className="mb-6 border-b border-border pb-4 flex gap-4 flex-wrap justify-between items-center">
-          <div className="flex gap-4 flex-wrap items-center">
+        <div className="mb-6 border-b border-border pb-6 flex gap-3 flex-wrap justify-between items-center">
+          <div className="flex gap-3 flex-wrap items-center">
             <button 
               type="button" 
               onClick={handleAddPantryItem}
-              className="flex items-center gap-1 text-primary hover:text-primary-hover font-body-sm font-semibold transition-colors"
+              className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 text-primary hover:bg-primary/20 rounded-full font-label-caps text-label-caps transition-colors shadow-sm"
             >
               <span className="material-symbols-outlined text-[18px]">add_circle</span>
               Add manually
             </button>
-            
-            <div className="w-px h-6 bg-border mx-2 hidden sm:block"></div>
             
             <input 
               type="file" 
@@ -205,26 +203,24 @@ const PantryInventory = () => {
               type="button" 
               onClick={() => fileInputRef.current.click()}
               disabled={isScanning}
-              className="tour-scan-ai flex items-center gap-1 text-[#2B5C8F] hover:text-[#1A3D63] transition-colors font-body-sm font-semibold"
+              className="tour-scan-ai flex items-center gap-1.5 px-4 py-2 bg-indigo-500/10 text-indigo-700 hover:bg-indigo-500/20 rounded-full font-label-caps text-label-caps transition-colors shadow-sm disabled:opacity-50"
             >
               <span className="material-symbols-outlined text-[18px]">photo_camera</span>
               {isScanning ? 'Scanning...' : 'Scan with AI'}
             </button>
-
-            <div className="w-px h-6 bg-border mx-2 hidden sm:block"></div>
             
             <button 
               type="button" 
               onClick={handleAutoFillPantry}
               disabled={isGeneratingPantry}
-              className="tour-auto-staple flex items-center gap-1 text-secondary hover:text-secondary-hover transition-colors font-body-sm font-semibold disabled:opacity-50"
+              className="tour-auto-staple flex items-center gap-1.5 px-4 py-2 bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/20 rounded-full font-label-caps text-label-caps transition-colors shadow-sm disabled:opacity-50"
             >
               {isGeneratingPantry ? (
                 <span className="material-symbols-outlined text-[18px] animate-spin">sync</span>
               ) : (
                 <span className="material-symbols-outlined text-[18px]">smart_toy</span>
               )}
-              {isGeneratingPantry ? 'Adding...' : 'Auto-add common staples (AI)'}
+              {isGeneratingPantry ? 'Adding...' : 'Auto-add Staples (AI)'}
             </button>
           </div>
           
@@ -232,7 +228,7 @@ const PantryInventory = () => {
             <button 
               type="button" 
               onClick={handleClearAll}
-              className="flex items-center gap-1 text-danger hover:text-danger/80 transition-colors font-body-sm font-semibold"
+              className="flex items-center gap-1.5 px-4 py-2 bg-red-500/10 text-red-600 hover:bg-red-500/20 rounded-full font-label-caps text-label-caps transition-colors shadow-sm"
             >
               <span className="material-symbols-outlined text-[18px]">delete_sweep</span>
               Bulk Delete
