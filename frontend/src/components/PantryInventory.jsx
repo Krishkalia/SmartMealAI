@@ -113,16 +113,16 @@ const PantryInventory = () => {
 
   return (
     <div className="p-4 md:p-margin max-w-max-width mx-auto w-full flex-1">
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
           <h2 className="font-h1 text-h1 text-on-surface">Pantry Inventory</h2>
           <p className="mt-2 text-text-secondary">Manage what you have in your kitchen. We'll use this to optimize your grocery list.</p>
         </div>
         <button 
           onClick={handleSave}
-          className="bg-primary hover:bg-primary-hover text-on-primary font-body-sm font-semibold py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+          className="bg-primary hover:bg-primary-hover text-on-primary font-body-sm font-semibold py-3 md:py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 w-full md:w-auto shadow-sm"
         >
-          <span className="material-symbols-outlined text-[18px]">save</span>
+          <span className="material-symbols-outlined text-[20px] md:text-[18px]">save</span>
           Save Changes
         </button>
       </div>

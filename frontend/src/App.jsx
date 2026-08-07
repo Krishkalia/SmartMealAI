@@ -8,29 +8,38 @@ import { PlanProvider } from './context/PlanContext';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import { Toaster } from 'react-hot-toast';
+import ClickSpark from './components/ClickSpark';
 
 function App() {
   return (
     <AuthProvider>
       <PlanProvider>
         <Toaster position="top-right" toastOptions={{ className: 'font-body-sm' }} />
-        <Router>
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/signup" element={<SignupPage />} />
-            <Route path="/onboarding" element={
-              <ProtectedRoute>
-                <OnboardingPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <DashboardPage />
-              </ProtectedRoute>
-            } />
-          </Routes>
-        </Router>
+        <ClickSpark
+          sparkColor='#000000'
+          sparkSize={10}
+          sparkRadius={15}
+          sparkCount={8}
+          duration={400}
+        >
+          <Router>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/signup" element={<SignupPage />} />
+              <Route path="/onboarding" element={
+                <ProtectedRoute>
+                  <OnboardingPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/dashboard" element={
+                <ProtectedRoute>
+                  <DashboardPage />
+                </ProtectedRoute>
+              } />
+            </Routes>
+          </Router>
+        </ClickSpark>
       </PlanProvider>
     </AuthProvider>
   );

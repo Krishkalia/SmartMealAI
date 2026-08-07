@@ -12,7 +12,14 @@ const DashboardLayout = ({ children, currentTab, setCurrentTab }) => {
   const { user, logout } = useAuth();
   const { generatePlan, isLoading } = usePlan();
   const navigate = useNavigate();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 1024);
+
+  const handleNavigation = (tabId) => {
+    setCurrentTab(tabId);
+    if (window.innerWidth < 1024) {
+      setIsSidebarOpen(false);
+    }
+  };
 
   const handleLogout = () => {
     logout();
@@ -115,14 +122,28 @@ const DashboardLayout = ({ children, currentTab, setCurrentTab }) => {
           lg:relative lg:top-0
         `}>
           {/* Profile Section */}
-          <div className="p-4 border-b border-border flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg flex-shrink-0 shadow-sm">
-              {user?.name ? user.name.charAt(0).toUpperCase() : 'C'}
+          <div className="p-4 border-b border-border flex items-center justify-between">
+            <div className="flex items-center gap-3 overflow-hidden">
+              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg flex-shrink-0 shadow-sm">
+                {user?.name ? user.name.charAt(0).toUpperCase() : 'C'}
+              </div>
+              <div className="flex flex-col overflow-hidden pr-2">
+                <span className="font-medium text-on-surface truncate">{user?.name || 'Chef'}</span>
+                <span className="text-xs text-text-secondary truncate">{user?.email || 'Settings & Profile'}</span>
+              </div>
             </div>
-            <div className="flex flex-col overflow-hidden">
-              <span className="font-medium text-on-surface truncate">{user?.name || 'Chef'}</span>
-              <span className="text-xs text-text-secondary truncate">{user?.email || 'Settings & Profile'}</span>
-            </div>
+            <button 
+              onClick={() => {
+                handleNavigation('profile');
+                setTimeout(() => {
+                  document.getElementById('favorites-section')?.scrollIntoView({ behavior: 'smooth' });
+                }, 150);
+              }}
+              className="w-8 h-8 flex-shrink-0 rounded-full flex items-center justify-center text-danger/80 hover:text-danger hover:bg-danger/10 transition-colors"
+              title="View Favorites"
+            >
+              <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>favorite</span>
+            </button>
           </div>
 
           <div className="p-4">
@@ -144,7 +165,7 @@ const DashboardLayout = ({ children, currentTab, setCurrentTab }) => {
             {tabs.map(tab => (
               <li key={tab.id}>
                 <button 
-                  onClick={() => setCurrentTab(tab.id)}
+                  onClick={() => handleNavigation(tab.id)}
                   className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors font-body-sm text-sm ${currentTab === tab.id ? 'text-primary bg-primary-container' : 'text-text-secondary hover:text-primary hover:bg-surface-variant'}`}
                 >
                   <span className="material-symbols-outlined text-[20px]" style={currentTab === tab.id ? { fontVariationSettings: "'FILL' 1" } : {}}>{tab.icon}</span>

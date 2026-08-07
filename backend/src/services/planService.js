@@ -97,7 +97,7 @@ class PlanService {
       if (!recipe) continue;
       for (const ing of recipe.ingredients) {
         const norm = unitConverter.normalize(ing.qty, ing.unit);
-        const key = `${ing.name.toLowerCase()}`;
+        const key = `${ing.name.toLowerCase()}_${norm.unit}`;
         
         if (requiredIngredients[key]) {
           // If we already have this ingredient but units differ and aren't standardized, we might have an issue
@@ -168,8 +168,14 @@ class PlanService {
     const perMealCost = { Breakfast: 0, Lunch: 0, Dinner: 0 };
     
     const shoppingList = Object.values(requiredIngredients).map(ing => {
-      // Use AI price if available, otherwise default to a small amount
-      const cost = aiPrices[ing.originalName] || (ing.qty * 0.5); // Fallback pricing
+      // Use AI price if available (careful with 0 being falsy), otherwise default
+      let cost = aiPrices[ing.originalName] !== undefined ? aiPrices[ing.originalName] : (ing.qty * 0.5);
+      
+      // Hardcode water to be free
+      if (ing.originalName.toLowerCase().includes('water')) {
+        cost = 0;
+      }
+
       const category = categoryMap[ing.originalName.toLowerCase()] || 'Other';
       
       totalCost += cost;

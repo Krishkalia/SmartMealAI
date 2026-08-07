@@ -3,6 +3,7 @@ const geminiService = require('../services/geminiService');
 const cloudinaryService = require('../services/cloudinaryService');
 const Plan = require('../models/Plan');
 const Recipe = require('../models/Recipe');
+const User = require('../models/User');
 
 exports.generatePlan = async (req, res) => {
   try {
@@ -62,9 +63,9 @@ exports.generatePlan = async (req, res) => {
     // 3. Generate shopping list with pantry netting & budget analysis
     const listResult = await planService.generateShoppingList(selectedRecipes, pantry, budget);
 
-    // 4. Find substitutions for missing items
+    // 4. Find substitutions for missing items (Disabled auto-substitution per user request)
     const missingIngredients = listResult.flatShoppingList;
-    const substitutions = await geminiService.getMissingIngredientSubstitutes(missingIngredients, allergies);
+    const substitutions = {};
 
     // 5. Generate and phrase timeline
     const { timeline: rawTimeline, totalActiveTime } = planService.generateCookingTimeline(selectedRecipes);
@@ -183,7 +184,7 @@ exports.refreshMeal = async (req, res) => {
 
     const listResult = await planService.generateShoppingList(selectedRecipes, preferences.pantry || [], preferences.budget || 50);
     const missingIngredients = listResult.flatShoppingList;
-    const substitutions = await geminiService.getMissingIngredientSubstitutes(missingIngredients, allergies);
+    const substitutions = plan.substitutions || {};
     
     const { timeline: rawTimeline, totalActiveTime } = planService.generateCookingTimeline(selectedRecipes);
     const phrasedTimeline = await geminiService.phraseTimeline(rawTimeline);
@@ -269,5 +270,133 @@ exports.scanPantry = async (req, res) => {
   } catch (error) {
     console.error("Scan pantry error:", error);
     res.status(500).json({ success: false, message: 'Failed to analyze image' });
+  }
+};
+
+exports.getSubstituteOptions = async (req, res) => {
+  try {
+    const { ingredientName, originalQty, originalUnit } = req.body;
+    if (!ingredientName) {
+      return res.status(400).json({ success: false, message: 'ingredientName is required' });
+    }
+
+    const user = await User.findById(req.user.id);
+    const dietaryPrefs = user?.preferences?.dietaryPreferences || [];
+    const allergies = dietaryPrefs.filter(p => !['vegetarian', 'vegan', 'non-vegetarian', 'eggetarian', 'no restriction'].includes(p));
+
+    const options = await geminiService.getSubstituteOptions(ingredientName, allergies, originalQty, originalUnit);
+    res.json({ success: true, data: options });
+  } catch (error) {
+    console.error("Get substitute options error:", error);
+    res.status(500).json({ success: false, message: 'Failed to get options' });
+  }
+};
+
+exports.swapIngredient = async (req, res) => {
+  try {
+    const plan = await Plan.findOne({ _id: req.params.id, userId: req.user.id });
+    if (!plan) {
+      return res.status(404).json({ success: false, message: 'Plan not found' });
+    }
+
+    const { ingredientName, substituteData } = req.body;
+    if (!ingredientName || !substituteData) {
+      return res.status(400).json({ success: false, message: 'ingredientName and substituteData are required' });
+    }
+
+    const updatedSubstitutions = { ...plan.substitutions };
+    
+    // Calculate budget adjustments
+    let currentEffectiveCost = 0;
+    let originalMeals = [];
+    
+    if (plan.shoppingList) {
+      for (const category of Object.values(plan.shoppingList)) {
+        const item = category.find(i => i.ingredientName === ingredientName);
+        if (item) {
+          const existingSub = plan.substitutions && plan.substitutions[ingredientName];
+          currentEffectiveCost = existingSub && existingSub.estimatedPrice !== undefined 
+            ? existingSub.estimatedPrice 
+            : (item.estimatedCost || 0);
+          originalMeals = item.meals || [];
+          break;
+        }
+      }
+    }
+
+    const newCost = substituteData.estimatedPrice || 0;
+    const costDelta = newCost - currentEffectiveCost;
+
+    plan.totalCost += costDelta;
+    plan.budgetDifference = plan.budget - plan.totalCost;
+    plan.isOverBudget = plan.totalCost > plan.budget;
+
+    if (originalMeals.length > 0) {
+      if (!plan.perMealCost) plan.perMealCost = { Breakfast: 0, Lunch: 0, Dinner: 0 };
+      const splitDelta = costDelta / originalMeals.length;
+      originalMeals.forEach(m => {
+        const normalizedMeal = m.charAt(0).toUpperCase() + m.slice(1).toLowerCase();
+        if (plan.perMealCost[normalizedMeal] !== undefined) {
+          plan.perMealCost[normalizedMeal] += splitDelta;
+        }
+      });
+    }
+
+    updatedSubstitutions[ingredientName] = substituteData;
+    plan.substitutions = updatedSubstitutions;
+    
+    await plan.save();
+
+    const updatedPlan = await Plan.findById(plan._id)
+      .populate('meals.breakfast')
+      .populate('meals.lunch')
+      .populate('meals.dinner');
+
+    res.json({ success: true, data: updatedPlan });
+  } catch (error) {
+    console.error("Swap ingredient error:", error);
+    res.status(500).json({ success: false, message: 'Failed to apply substitution' });
+  }
+};
+
+exports.addManualItem = async (req, res) => {
+  try {
+    const { ingredientName } = req.body;
+    
+    if (!ingredientName) {
+      return res.status(400).json({ success: false, message: 'Ingredient name is required' });
+    }
+
+    const plan = await Plan.findOne({ _id: req.params.id, userId: req.user.id });
+    if (!plan) return res.status(404).json({ success: false, message: 'Plan not found' });
+
+    if (!plan.shoppingList) {
+      plan.shoppingList = {};
+    }
+    
+    if (!plan.shoppingList['Other']) {
+      plan.shoppingList['Other'] = [];
+    }
+
+    plan.shoppingList['Other'].push({
+      ingredientName,
+      qty: 1,
+      unit: 'pcs',
+      estimatedCost: 0
+    });
+
+    plan.markModified('shoppingList');
+    
+    await plan.save();
+    
+    const updatedPlan = await Plan.findById(plan._id)
+      .populate('meals.breakfast')
+      .populate('meals.lunch')
+      .populate('meals.dinner');
+      
+    res.json({ success: true, data: updatedPlan });
+  } catch (error) {
+    console.error("Add manual item error:", error);
+    res.status(500).json({ success: false, message: 'Failed to add manual item' });
   }
 };

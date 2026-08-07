@@ -4,7 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import RecipeDetailModal from './RecipeDetailModal';
 import { useAuth } from '../context/AuthContext';
 
-const RecipeCard = ({ recipe, cost, pantryUsed, onRefresh, isRefreshing, onClick }) => {
+const RecipeCard = ({ recipe, cost, pantryUsed, substitutions, onRefresh, isRefreshing, onClick }) => {
+  const [imgError, setImgError] = useState(false);
+
   if (!recipe) return null;
 
   const isIngredientInPantry = (ingName) => {
@@ -15,29 +17,61 @@ const RecipeCard = ({ recipe, cost, pantryUsed, onRefresh, isRefreshing, onClick
   // Generate a dynamic AI image based on the recipe name
   const dynamicImage = `https://image.pollinations.ai/prompt/delicious%20food%20dish%20${encodeURIComponent(recipe.name)}?width=800&height=600&nologo=true`;
 
+  const getTheme = () => {
+    switch (recipe.mealType?.toLowerCase()) {
+      case 'breakfast': return {
+        pill: 'bg-gradient-to-r from-amber-200/50 to-orange-200/20 text-amber-700 border border-amber-200/50',
+        icon: 'brightness_5',
+        shadow: 'hover:shadow-[0_20px_50px_rgba(245,158,11,0.15)]'
+      };
+      case 'lunch': return {
+        pill: 'bg-gradient-to-r from-sky-200/50 to-blue-200/20 text-sky-700 border border-sky-200/50',
+        icon: 'light_mode',
+        shadow: 'hover:shadow-[0_20px_50px_rgba(14,165,233,0.15)]'
+      };
+      case 'dinner': return {
+        pill: 'bg-gradient-to-r from-indigo-200/50 to-purple-200/20 text-indigo-700 border border-indigo-200/50',
+        icon: 'nights_stay',
+        shadow: 'hover:shadow-[0_20px_50px_rgba(99,102,241,0.15)]'
+      };
+      default: return {
+        pill: 'bg-primary/10 text-primary border border-primary/10',
+        icon: 'restaurant',
+        shadow: 'hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)]'
+      };
+    }
+  };
+  
+  const theme = getTheme();
+
   return (
     <article 
       onClick={() => onClick && onClick(recipe)}
-      className="bg-surface rounded-lg border border-border shadow-sm hover:shadow transition-shadow duration-200 overflow-hidden flex flex-col cursor-pointer group h-full"
+      className={`bg-surface rounded-2xl border border-border shadow-md hover:-translate-y-2 transition-all duration-300 overflow-hidden flex flex-col cursor-pointer group h-full w-[92%] sm:w-full max-w-md mx-auto ${theme.shadow}`}
     >
-      <div className="w-full h-80 sm:h-[400px] relative overflow-hidden bg-surface-alt shrink-0">
-        <img 
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-          src={recipe.imageUrl || dynamicImage || defaultImage}
-          alt={recipe.name}
-          loading="lazy"
-        />
+      <div className="w-full h-48 sm:h-64 relative overflow-hidden bg-surface-alt shrink-0 flex items-center justify-center">
+        {!imgError ? (
+          <img 
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+            src={recipe.imageUrl || dynamicImage || defaultImage}
+            alt={recipe.name}
+            loading="lazy"
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <span className="material-symbols-outlined text-[140px] text-primary group-hover:scale-110 transition-transform duration-500">restaurant</span>
+        )}
         <div className="absolute top-3 right-3 bg-surface/90 backdrop-blur-sm px-2 py-1 rounded border border-border">
           <span className="font-body-sm text-xs font-medium text-on-background">₹{cost?.toFixed(2) || '0.00'}</span>
         </div>
       </div>
-      <div className="p-6 flex flex-col flex-grow relative">
+      <div className="p-5 md:p-6 flex flex-col flex-grow relative">
         {/* Refresh Button */}
         {onRefresh && (
           <button 
             onClick={(e) => { e.stopPropagation(); onRefresh(recipe.mealType.toLowerCase()); }}
             disabled={isRefreshing}
-            className="absolute top-4 right-4 p-2 rounded-full bg-surface-variant text-text-secondary hover:text-primary hover:bg-primary/10 transition-colors disabled:opacity-50"
+            className="absolute top-3 right-3 md:top-4 md:right-4 p-2 rounded-full bg-surface-variant text-text-secondary hover:text-primary hover:bg-primary/10 transition-colors disabled:opacity-50"
             title="Get a different meal for this slot"
           >
             <span className={`material-symbols-outlined text-[20px] ${isRefreshing ? 'animate-spin' : ''}`}>
@@ -47,9 +81,12 @@ const RecipeCard = ({ recipe, cost, pantryUsed, onRefresh, isRefreshing, onClick
         )}
 
         <div className="flex items-center gap-2 mb-3 pr-10">
-          <span className="bg-surface-alt text-text-secondary px-3 py-1 rounded-full font-label-caps text-xs">{recipe.mealType}</span>
+          <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full font-label-caps text-xs font-bold ${theme.pill}`}>
+            <span className="material-symbols-outlined text-[14px]">{theme.icon}</span>
+            {recipe.mealType}
+          </span>
           {(recipe.prepTime === 0 || recipe.cookTime === 0) && (
-            <span className="bg-surface-alt text-text-secondary px-3 py-1 rounded-full font-label-caps text-xs">Prep Ahead</span>
+            <span className="bg-secondary/10 text-secondary border border-secondary/10 px-3 py-1 rounded-full font-label-caps text-xs font-bold">Prep Ahead</span>
           )}
         </div>
         <h3 className="font-h2 text-2xl font-bold text-on-background mb-2 group-hover:text-primary transition-colors pr-10 leading-tight">{recipe.name}</h3>
@@ -69,19 +106,40 @@ const RecipeCard = ({ recipe, cost, pantryUsed, onRefresh, isRefreshing, onClick
           <ul className="space-y-2">
             {recipe.ingredients?.map((ing, idx) => {
               const inPantry = isIngredientInPantry(ing.name);
+              const sub = substitutions?.[ing.name];
+              
+              let displayQty = `${ing.qty} ${ing.unit}`;
+              if (sub) {
+                if (sub.replacementQty) {
+                  displayQty = `${sub.replacementQty} ${sub.replacementUnit || ''}`;
+                } else if (sub.ratio && !sub.ratio.includes(':') && !sub.ratio.includes('x')) {
+                  displayQty = sub.ratio.replace(/use/i, '').trim();
+                } else if (sub.ratio && sub.ratio.includes('x')) {
+                  const multiplier = parseFloat(sub.ratio.replace('x', ''));
+                  if (!isNaN(multiplier)) displayQty = `${ing.qty * multiplier} ${ing.unit}`;
+                }
+              }
+
               return (
                 <li key={idx} className="flex items-start gap-2.5">
                   <div className={`w-4 h-4 mt-0.5 rounded border flex-shrink-0 flex items-center justify-center transition-colors ${inPantry ? 'bg-success border-success text-on-primary' : 'border-outline text-transparent'}`}>
                     <span className="material-symbols-outlined text-[12px] font-bold">check</span>
                   </div>
-                  <div className={`text-sm ${inPantry ? 'text-text-secondary' : 'text-on-background'}`}>
-                    {ing.qty > 0 ? (
-                      <>
-                        <span className="font-semibold mr-1">{ing.qty}</span>
-                        <span className="mr-1">{ing.unit}</span>
-                      </>
-                    ) : null}
-                    <span className="font-medium">{ing.name}</span>
+                  <div className={`text-sm ${inPantry ? 'text-text-secondary' : 'text-on-background'} flex flex-col`}>
+                    <div>
+                      {ing.qty > 0 && !sub ? (
+                        <>
+                          <span className="font-semibold mr-1">{ing.qty}</span>
+                          <span className="mr-1">{ing.unit}</span>
+                        </>
+                      ) : sub ? (
+                        <span className="font-semibold mr-1">{displayQty}</span>
+                      ) : null}
+                      <span className="font-medium">{sub?.substitute || ing.name}</span>
+                    </div>
+                    {sub && (
+                      <span className="text-xs text-text-secondary italic mt-0.5">Instead of {ing.name}</span>
+                    )}
                   </div>
                 </li>
               );
@@ -130,7 +188,15 @@ const MealPlanView = () => {
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
   return (
-    <div className="p-4 md:p-6 w-full flex-1 pt-6 md:pt-12 pb-8">
+    <div className="p-4 md:p-8 w-full flex-1 pt-6 md:pt-10 pb-16 bg-gradient-to-br from-amber-100/60 via-sky-100/40 to-indigo-100/60 min-h-full relative z-0 overflow-hidden">
+      {/* Background Aesthetic Icons */}
+      <div className="absolute top-[-5%] left-[-2%] text-amber-500/10 pointer-events-none -z-10 transform -rotate-12">
+        <span className="material-symbols-outlined" style={{ fontSize: '300px', fontVariationSettings: "'FILL' 1" }}>light_mode</span>
+      </div>
+      <div className="absolute bottom-[-10%] right-[-5%] text-indigo-500/10 pointer-events-none -z-10 transform rotate-12">
+        <span className="material-symbols-outlined" style={{ fontSize: '350px', fontVariationSettings: "'FILL' 1" }}>dark_mode</span>
+      </div>
+
       {/* Header / Summary Strip */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 border-b border-border pb-6">
         <div className="flex flex-row items-center justify-between md:flex-col md:items-start gap-4 w-full md:w-auto">
@@ -146,10 +212,14 @@ const MealPlanView = () => {
           </button>
         </div>
         {/* Budget Summary Strip */}
-        <div className="bg-surface rounded-xl p-4 md:p-6 shadow-sm border border-border flex flex-col md:flex-row gap-6 md:items-center w-full md:w-auto max-w-xl">
-          <div className="w-full">
-            <p className="font-label-caps text-label-caps text-text-secondary mb-2">AI Insights</p>
-            <p className="font-body-sm text-body-sm text-on-surface italic">
+        <div className="bg-gradient-to-r from-surface to-surface-alt rounded-2xl p-5 md:p-6 shadow-sm border border-border/50 flex flex-col md:flex-row gap-4 md:items-start w-full md:w-auto max-w-xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
+          <div className="shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary">
+            <span className="material-symbols-outlined text-[20px]">auto_awesome</span>
+          </div>
+          <div className="w-full z-10">
+            <p className="font-label-caps text-label-caps text-primary mb-1.5 font-bold">AI Insights</p>
+            <p className="font-body-sm text-body-sm text-on-surface leading-relaxed">
               "{aiMessage || 'Welcome to your tailored SmartMeal plan.'}"
             </p>
           </div>
@@ -157,10 +227,10 @@ const MealPlanView = () => {
       </div>
 
       {/* Meal Cards Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-        <RecipeCard recipe={meals?.breakfast} cost={perMealCost?.Breakfast} pantryUsed={pantryUsed} onRefresh={handleRefresh} isRefreshing={refreshingMeal === 'breakfast'} onClick={setSelectedRecipe} />
-        <RecipeCard recipe={meals?.lunch} cost={perMealCost?.Lunch} pantryUsed={pantryUsed} onRefresh={handleRefresh} isRefreshing={refreshingMeal === 'lunch'} onClick={setSelectedRecipe} />
-        <RecipeCard recipe={meals?.dinner} cost={perMealCost?.Dinner} pantryUsed={pantryUsed} onRefresh={handleRefresh} isRefreshing={refreshingMeal === 'dinner'} onClick={setSelectedRecipe} />
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 md:gap-12 max-w-[1400px] mx-auto w-full justify-center">
+        <RecipeCard recipe={meals?.breakfast} cost={perMealCost?.Breakfast} pantryUsed={pantryUsed} substitutions={planData.substitutions} onRefresh={handleRefresh} isRefreshing={refreshingMeal === 'breakfast'} onClick={setSelectedRecipe} />
+        <RecipeCard recipe={meals?.lunch} cost={perMealCost?.Lunch} pantryUsed={pantryUsed} substitutions={planData.substitutions} onRefresh={handleRefresh} isRefreshing={refreshingMeal === 'lunch'} onClick={setSelectedRecipe} />
+        <RecipeCard recipe={meals?.dinner} cost={perMealCost?.Dinner} pantryUsed={pantryUsed} substitutions={planData.substitutions} onRefresh={handleRefresh} isRefreshing={refreshingMeal === 'dinner'} onClick={setSelectedRecipe} />
       </div>
 
       {/* Recipe Detail Modal */}

@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import RecipeDetailModal from './RecipeDetailModal';
 
 const ProfileSettings = () => {
   const { user, updatePreferences } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedRecipe, setSelectedRecipe] = useState(null);
   
   const [household, setHousehold] = useState(2);
 
@@ -233,6 +235,56 @@ const ProfileSettings = () => {
           </div>
         </form>
       </div>
+
+      {/* Favorite Recipes Section */}
+      <div id="favorites-section" className="mt-12 mb-8 border-b border-border pb-6 flex items-center gap-2">
+        <span className="material-symbols-outlined text-[28px] text-danger fill-current" style={{ fontVariationSettings: "'FILL' 1" }}>favorite</span>
+        <h2 className="font-h1 text-[28px] md:text-3xl text-on-surface leading-tight">Favorite Recipes</h2>
+      </div>
+
+      {user?.favorites && user.favorites.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {user.favorites.map((recipe, idx) => (
+            <div 
+              key={idx} 
+              className="bg-surface rounded-2xl shadow-sm border border-border overflow-hidden flex flex-col hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => setSelectedRecipe(recipe)}
+            >
+              <div className="h-48 relative overflow-hidden bg-surface-alt">
+                <img 
+                  src={recipe.imageUrl || `https://image.pollinations.ai/prompt/delicious%20food%20dish%20${encodeURIComponent(recipe.name)}?width=800&height=600&nologo=true`} 
+                  alt={recipe.name}
+                  className="w-full h-full object-cover transition-transform hover:scale-105 duration-300"
+                />
+              </div>
+              <div className="p-5 flex flex-col flex-1">
+                <h3 className="font-h3 text-xl font-bold text-on-surface mb-2 line-clamp-2">{recipe.name}</h3>
+                <div className="flex gap-4 mt-auto pt-4 border-t border-border/50">
+                  <div className="flex items-center gap-1.5 text-text-secondary">
+                    <span className="material-symbols-outlined text-[18px]">schedule</span>
+                    <span className="text-sm font-medium">{recipe.prepTime + (recipe.cookTime || 0)}m</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="bg-surface rounded-xl border border-border p-8 text-center">
+          <span className="material-symbols-outlined text-[48px] text-text-secondary opacity-50 mb-4">favorite_border</span>
+          <h3 className="text-xl font-semibold text-on-surface mb-2">No favorites yet</h3>
+          <p className="text-text-secondary">When you find a recipe you love, tap the heart icon to save it here.</p>
+        </div>
+      )}
+
+      {/* Recipe Detail Modal */}
+      {selectedRecipe && (
+        <RecipeDetailModal
+          recipe={selectedRecipe}
+          initialServings={household}
+          onClose={() => setSelectedRecipe(null)}
+        />
+      )}
     </div>
   );
 };

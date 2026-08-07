@@ -3,11 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { usePlan } from '../context/PlanContext';
 import { useAuth } from '../context/AuthContext';
 import { Loader2 } from 'lucide-react';
-import Swal from 'sweetalert2';
-import withReactContent from 'sweetalert2-react-content';
 import toast from 'react-hot-toast';
 
-const MySwal = withReactContent(Swal);
 const OnboardingPage = () => {
   const navigate = useNavigate();
   const { generatePlan, isLoading } = usePlan();
@@ -35,6 +32,25 @@ const OnboardingPage = () => {
       }
     }
   }, [prefs.pantry]);
+
+  const [quoteIndex, setQuoteIndex] = useState(0);
+  const quotes = [
+    "Building a plan perfect for you...",
+    "Are you hungry yet?",
+    "Consulting the digital chefs...",
+    "Chopping the virtual onions...",
+    "Sprinkling some AI magic..."
+  ];
+
+  React.useEffect(() => {
+    let interval;
+    if (isLoading) {
+      interval = setInterval(() => {
+        setQuoteIndex((prev) => (prev + 1) % quotes.length);
+      }, 2500);
+    }
+    return () => clearInterval(interval);
+  }, [isLoading]);
 
   const initialDiets = ['vegetarian', 'vegan', 'non-vegetarian', 'eggetarian'];
   const userDiet = prefs.dietaryPreferences?.find(p => initialDiets.includes(p)) || 'no restriction';
@@ -87,45 +103,50 @@ const OnboardingPage = () => {
       cookTime
     };
     
-    const result = await MySwal.fire({
-      title: 'Ready to cook?',
-      text: "We'll generate a personalized meal plan based on your preferences.",
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, generate it!',
-      cancelButtonText: 'Cancel',
-      buttonsStyling: false,
-      customClass: {
-        container: 'font-sans',
-        popup: 'rounded-2xl border border-border shadow-large bg-surface',
-        title: 'font-h2 text-h2 font-bold text-on-background',
-        htmlContainer: 'font-body-lg text-text-secondary mt-2',
-        confirmButton: 'bg-primary hover:bg-primary-hover text-on-primary font-label-caps text-label-caps rounded-full px-6 py-2.5 transition-colors shadow-sm',
-        cancelButton: 'bg-surface-variant hover:bg-border text-on-surface-variant font-label-caps text-label-caps rounded-full px-6 py-2.5 transition-colors ml-3',
-        icon: 'text-primary border-primary'
-      }
-    });
-
-    if (result.isConfirmed) {
-      const success = await generatePlan(preferences);
-      if (success) {
-        // Save to user profile
-        await updatePreferences(preferences);
-        toast.success('Meal plan generated successfully!');
-        navigate('/dashboard');
-      } else {
-        toast.error('Failed to generate meal plan.');
-      }
+    const success = await generatePlan(preferences);
+    if (success) {
+      // Save to user profile
+      await updatePreferences(preferences);
+      toast.success('Meal plan generated successfully!');
+      navigate('/dashboard');
+    } else {
+      toast.error('Failed to generate meal plan.');
     }
   };
   return (
     <div className="min-h-screen font-body-lg antialiased bg-background text-on-background selection:bg-primary-container selection:text-on-primary-container">
+      {/* Full-Screen Loader Overlay */}
+      {isLoading && (
+        <div className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-md flex flex-col items-center justify-center transition-opacity duration-300">
+          <div className="relative">
+            {/* "Magic sparks" - absolute positioned animated dots */}
+            <div className="absolute -top-6 -left-6 w-3 h-3 bg-primary rounded-full animate-ping"></div>
+            <div className="absolute -bottom-8 -right-8 w-4 h-4 bg-secondary rounded-full animate-pulse delay-100"></div>
+            <div className="absolute top-1/2 -right-12 w-2 h-2 bg-warning rounded-full animate-ping delay-300"></div>
+            <div className="absolute -bottom-2 -left-12 w-3 h-3 bg-primary rounded-full animate-bounce delay-200"></div>
+            <div className="absolute -top-8 right-0 w-2 h-2 bg-success rounded-full animate-pulse delay-75"></div>
+            
+            <Loader2 className="w-20 h-20 text-primary animate-spin" />
+          </div>
+          
+          <div className="h-20 mt-12 flex flex-col items-center justify-center">
+            <h2 key={quoteIndex} className="font-h1 text-[28px] md:text-[36px] text-on-surface text-center px-4 animate-[fadeIn_0.5s_ease-out]">
+              {quotes[quoteIndex]}
+            </h2>
+          </div>
+          
+          <p className="mt-4 text-text-secondary font-body-lg text-center max-w-md px-4">
+            This might take a few seconds. We're doing the heavy lifting to find the perfect recipes and deals!
+          </p>
+        </div>
+      )}
+
       {/* TopAppBar */}
       <header className="w-full sticky top-0 z-50 bg-background/90 backdrop-blur-sm flex justify-between items-center px-margin py-4 max-w-max-width mx-auto border-b border-border transition-all">
         <h1 className="font-h1 text-h1 font-bold text-primary">SmartMeal AI</h1>
       </header>
 
-      <main className="py-section-gap-sm px-4 md:px-margin max-w-3xl mx-auto w-full">
+      <main className="py-section-gap-sm px-4 md:px-margin max-w-4xl mx-auto w-full">
         <div className="mb-8 text-center">
           <h2 className="font-h1 text-[32px] md:text-hero text-on-surface leading-tight mb-4">Tell us how you eat.</h2>
           <p className="font-body-lg text-body-lg text-text-secondary">We'll craft a plan that fits your life, your pantry, and your budget.</p>

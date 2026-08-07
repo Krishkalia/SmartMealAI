@@ -40,7 +40,22 @@ const STANDARD_UNITS = {
   piece: 'pcs',
   pieces: 'pcs',
   unit: 'pcs',
-  bottle: 'pcs'
+  bottle: 'pcs',
+  bottles: 'pcs',
+  clove: 'pcs',
+  cloves: 'pcs',
+  pinch: 'pcs',
+  pinches: 'pcs',
+  slice: 'pcs',
+  slices: 'pcs',
+  bunch: 'pcs',
+  bunches: 'pcs',
+  packet: 'pcs',
+  packets: 'pcs',
+  leaf: 'pcs',
+  leaves: 'pcs',
+  sprig: 'pcs',
+  sprigs: 'pcs'
 };
 
 // Conversion ratios to base unit
@@ -81,7 +96,49 @@ const CONVERSION_RATIOS = {
   piece: 1,
   pieces: 1,
   unit: 1,
-  bottle: 1
+  bottle: 1,
+  bottles: 1,
+  clove: 1,
+  cloves: 1,
+  pinch: 1,
+  pinches: 1,
+  slice: 1,
+  slices: 1,
+  bunch: 1,
+  bunches: 1,
+  packet: 1,
+  packets: 1,
+  leaf: 1,
+  leaves: 1,
+  sprig: 1,
+  sprigs: 1
+};
+
+/**
+ * Safely parse quantity which might be a string, a fraction like "1/2", or a number.
+ */
+const parseQty = (qty) => {
+  if (typeof qty === 'number') return qty;
+  if (!qty) return 1;
+  
+  const str = String(qty).trim();
+  
+  // Handle fractions like "1/2" or "1 1/2"
+  if (str.includes('/')) {
+    const parts = str.split(' ');
+    if (parts.length === 2) {
+      const whole = parseFloat(parts[0]);
+      const fracParts = parts[1].split('/');
+      const frac = parseFloat(fracParts[0]) / parseFloat(fracParts[1]);
+      return whole + frac;
+    } else {
+      const fracParts = str.split('/');
+      return parseFloat(fracParts[0]) / parseFloat(fracParts[1]);
+    }
+  }
+  
+  const parsed = parseFloat(str);
+  return isNaN(parsed) ? 1 : Math.max(0, parsed);
 };
 
 /**
@@ -90,7 +147,9 @@ const CONVERSION_RATIOS = {
  * @param {string} unit 
  * @returns {{ qty: number, unit: string, isStandardized: boolean }}
  */
-exports.normalize = (qty, unit) => {
+exports.normalize = (rawQty, unit) => {
+  const qty = parseQty(rawQty);
+
   if (!unit) return { qty, unit: 'pcs', isStandardized: false };
   
   const lowerUnit = unit.toLowerCase().trim();

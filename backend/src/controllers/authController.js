@@ -30,6 +30,7 @@ exports.register = async (req, res) => {
         _id: user._id,
         name: user.name,
         email: user.email,
+        favorites: user.favorites,
         token: generateToken(user._id)
       }
     });
@@ -64,6 +65,7 @@ exports.login = async (req, res) => {
         _id: user._id,
         name: user.name,
         email: user.email,
+        favorites: user.favorites,
         token: generateToken(user._id)
       }
     });
@@ -105,5 +107,38 @@ exports.updatePreferences = async (req, res) => {
   } catch (error) {
     console.error('Error updating preferences:', error);
     res.status(500).json({ success: false, message: 'Server error updating preferences' });
+  }
+};
+
+exports.toggleFavorite = async (req, res) => {
+  try {
+    const { recipe } = req.body;
+    
+    if (!recipe || !recipe.name) {
+      return res.status(400).json({ success: false, message: 'Please provide a valid recipe object with a name' });
+    }
+
+    const user = await User.findById(req.user.id);
+    
+    // Check if recipe already exists in favorites (by name)
+    const existingIndex = user.favorites.findIndex(fav => fav.name === recipe.name);
+    
+    if (existingIndex !== -1) {
+      // Remove it
+      user.favorites.splice(existingIndex, 1);
+    } else {
+      // Add it
+      user.favorites.push(recipe);
+    }
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      data: user.favorites
+    });
+  } catch (error) {
+    console.error('Error toggling favorite:', error);
+    res.status(500).json({ success: false, message: 'Server error toggling favorite' });
   }
 };

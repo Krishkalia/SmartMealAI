@@ -60,6 +60,7 @@ class GeminiService {
         - step type must be one of: "prep", "cook", "wait".
         - Ensure ingredients are common so they can be priced easily.
         - MUST use strictly metric units for ingredients: "g", "kg" for solids, and "ml", "L" for liquids, or "pcs" for items like eggs/onions. Do not use cups, tablespoons, or pinches.
+        - CRITICAL RULE: If you use a unit for a specific ingredient in one meal (e.g., 'pcs' for Onion in Breakfast), you MUST use the EXACT SAME unit for that ingredient across all other meals (e.g., 'pcs' for Onion in Lunch). DO NOT mix 'g' and 'pcs' for the same ingredient, or the shopping list calculation will break.
       `;
 
       let attempts = 0;
@@ -169,6 +170,71 @@ class GeminiService {
     }
 
     return substitutions;
+  }
+
+  /**
+   * 6.5 Multiple Substitution Options (Interactive Swap)
+   */
+  async getSubstituteOptions(ingredientName, allergies, originalQty, originalUnit) {
+    if (!process.env.GEMINI_API_KEY) {
+      return [{
+        substitute: "No safe substitute found",
+        replacementQty: "N/A",
+        estimatedPrice: 0,
+        notes: "Gemini API key missing",
+        source: 'fallback'
+      }];
+    }
+
+    try {
+      const prompt = `
+        Provide exactly 3 distinct, common substitute options for "${originalQty || 1} ${originalUnit || ''} of ${ingredientName}".
+        The user has the following allergies: ${allergies ? allergies.join(', ') : 'none'}.
+        Do not suggest anything containing those allergens.
+        For each substitute, provide a realistic estimated price in INR (₹) for the suggested replacement quantity.
+        Return strictly as a JSON array of objects without markdown ticks:
+        [
+          {
+            "substitute": "name of option 1",
+            "replacementQty": "e.g., 500g or 2 cups",
+            "estimatedPrice": 120,
+            "notes": "short sentence on how to use it"
+          },
+          ...
+        ]
+      `;
+      const result = await this.model.generateContent(prompt);
+      let text = result.response.text();
+      text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+      const parsed = JSON.parse(text);
+      
+      // Strict allergy validation on the array
+      if (allergies && allergies.length > 0) {
+        for (const option of parsed) {
+          const hasAllergen = allergies.some(a => option.substitute.toLowerCase().includes(a.toLowerCase()));
+          if (hasAllergen) {
+            throw new Error("AI returned an allergen substitute");
+          }
+        }
+      }
+      
+      return parsed.map(opt => ({
+        substitute: opt.substitute,
+        replacementQty: opt.replacementQty || opt.ratio, // fallback
+        estimatedPrice: opt.estimatedPrice || 0,
+        notes: opt.notes,
+        source: 'ai-manual'
+      }));
+    } catch (e) {
+      console.error(`Manual Gemini sub failed for ${ingredientName}`, e.message);
+      return [{
+        substitute: "No safe alternative found",
+        replacementQty: "N/A",
+        estimatedPrice: 0,
+        notes: "Consider omitting or trying a standard substitution.",
+        source: 'fallback'
+      }];
+    }
   }
 
   /**

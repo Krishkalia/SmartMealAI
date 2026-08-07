@@ -92,12 +92,34 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const toggleFavorite = async (recipe) => {
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/favorites', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ recipe })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setUser((prev) => ({ ...prev, favorites: data.data }));
+        return { success: true, favorites: data.data };
+      }
+      return { success: false, message: data.message };
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+      return { success: false, message: 'Network error' };
+    }
+  };
+
   const logout = () => {
     setToken(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, login, register, logout, updatePreferences }}>
+    <AuthContext.Provider value={{ user, token, isLoading, login, register, logout, updatePreferences, toggleFavorite }}>
       {children}
     </AuthContext.Provider>
   );

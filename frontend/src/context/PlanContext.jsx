@@ -78,6 +78,74 @@ export const PlanProvider = ({ children }) => {
     }
   };
 
+  const fetchSubstituteOptions = async (ingredientName, originalQty, originalUnit) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:5000/api/plan/substitute-options`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify({ ingredientName, originalQty, originalUnit })
+      });
+      const data = await response.json();
+      if (data.success) {
+        return data.data;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error fetching substitute options:', error);
+      return null;
+    }
+  };
+
+  const swapIngredient = async (planId, ingredientName, substituteData) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:5000/api/plan/${planId}/swap-ingredient`, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify({ ingredientName, substituteData })
+      });
+      const data = await response.json();
+      if (data.success) {
+        setPlanData(data.data);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error swapping ingredient:', error);
+      return false;
+    }
+  };
+
+  const addManualItem = async (planId, ingredientName) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:5000/api/plan/${planId}/manual-item`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify({ ingredientName })
+      });
+      const data = await response.json();
+      if (data.success) {
+        setPlanData(data.data);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error adding manual item:', error);
+      return false;
+    }
+  };
+
   const checkAndLoadTodayPlan = async () => {
     if (planData) return;
     try {
@@ -107,7 +175,7 @@ export const PlanProvider = ({ children }) => {
   };
 
   return (
-    <PlanContext.Provider value={{ planData, setPlanData, generatePlan, refreshMeal, checkAndLoadTodayPlan, isLoading }}>
+    <PlanContext.Provider value={{ planData, setPlanData, generatePlan, refreshMeal, fetchSubstituteOptions, swapIngredient, addManualItem, checkAndLoadTodayPlan, isLoading }}>
       {children}
     </PlanContext.Provider>
   );
