@@ -8,6 +8,47 @@ class GeminiService {
   }
 
   /**
+   * AI Common Pantry Generation
+   */
+  async generateCommonPantry() {
+    const defaultPantry = [
+      { name: "Salt", qty: 1, unit: "kg" },
+      { name: "Black Pepper", qty: 100, unit: "g" },
+      { name: "Cooking Oil", qty: 1, unit: "L" },
+      { name: "Rice", qty: 2, unit: "kg" },
+      { name: "Onions", qty: 1, unit: "kg" },
+      { name: "Garlic", qty: 250, unit: "g" },
+      { name: "Sugar", qty: 1, unit: "kg" },
+      { name: "Wheat Flour (Atta)", qty: 2, unit: "kg" },
+      { name: "Lentils (Dal)", qty: 500, unit: "g" },
+      { name: "Mixed Spices", qty: 200, unit: "g" }
+    ];
+
+    if (!process.env.GEMINI_API_KEY) {
+      return defaultPantry;
+    }
+    
+    try {
+      const prompt = `
+        Return exactly 10 very basic pantry staples that almost every household has (e.g., salt, pepper, oil, rice).
+        Return strictly in this JSON format without markdown ticks, as an array of objects:
+        [
+          { "name": "Ingredient Name", "qty": 1, "unit": "kg" }
+        ]
+        Use metric units (kg, g, L, ml) or 'pcs' or 'bottle'. Do not use cups or spoons.
+      `;
+      
+      const result = await this.model.generateContent(prompt);
+      let text = result.response.text();
+      text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+      return JSON.parse(text);
+    } catch (error) {
+      console.error("Gemini API error during common pantry generation, falling back to default:", error.message);
+      return defaultPantry;
+    }
+  }
+
+  /**
    * 6.2 AI Meal Generation
    */
   async generateBestCombination(userPreferences) {

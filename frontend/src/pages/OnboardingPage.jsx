@@ -66,6 +66,39 @@ const OnboardingPage = () => {
     localStorage.setItem('smartmeal_pantry', JSON.stringify(items));
   };
 
+  const [isGeneratingPantry, setIsGeneratingPantry] = useState(false);
+
+  const handleAutoFillPantry = async () => {
+    setIsGeneratingPantry(true);
+    const toastId = toast.loading('Consulting AI for common pantry staples...');
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5000/api/plan/common-pantry', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const result = await response.json();
+      if (result.success && result.data) {
+        // filter out items already in pantry
+        const newItems = result.data.filter(aiItem => 
+          !pantryItems.some(pItem => pItem.name.toLowerCase() === aiItem.name.toLowerCase())
+        );
+        const combined = [...pantryItems, ...newItems];
+        savePantry(combined);
+        toast.success(`Added ${newItems.length} common items!`, { id: toastId });
+      } else {
+        toast.error('Failed to get pantry items.', { id: toastId });
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Network error.', { id: toastId });
+    } finally {
+      setIsGeneratingPantry(false);
+    }
+  };
+
   const handleAddPantryItem = () => {
     savePantry([...pantryItems, { name: '', qty: 1, unit: 'pcs' }]);
   };
@@ -310,14 +343,29 @@ const OnboardingPage = () => {
                   </div>
                 ))}
                 
-                <button 
-                  type="button" 
-                  onClick={handleAddPantryItem}
-                  className="flex items-center gap-1 text-primary hover:text-primary-hover font-body-sm font-semibold transition-colors mt-2"
-                >
-                  <span className="material-symbols-outlined text-[18px]">add_circle</span>
-                  Add another item
-                </button>
+                <div className="flex flex-wrap items-center gap-4 mt-4">
+                  <button 
+                    type="button" 
+                    onClick={handleAddPantryItem}
+                    className="flex items-center gap-1 text-primary hover:text-primary-hover font-body-sm font-semibold transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">add_circle</span>
+                    Add another item
+                  </button>
+                  <button 
+                    type="button" 
+                    onClick={handleAutoFillPantry}
+                    disabled={isGeneratingPantry}
+                    className="flex items-center gap-1 text-secondary hover:text-secondary-hover font-body-sm font-semibold transition-colors disabled:opacity-50"
+                  >
+                    {isGeneratingPantry ? (
+                      <span className="material-symbols-outlined text-[18px] animate-spin">sync</span>
+                    ) : (
+                      <span className="material-symbols-outlined text-[18px]">smart_toy</span>
+                    )}
+                    {isGeneratingPantry ? 'Adding staples...' : 'Auto-add common staples (AI)'}
+                  </button>
+                </div>
               </div>
             </div>
             

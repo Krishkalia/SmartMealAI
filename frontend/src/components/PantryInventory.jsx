@@ -63,6 +63,39 @@ const PantryInventory = () => {
     toast.success('Pantry inventory saved successfully!');
   };
 
+  const [isGeneratingPantry, setIsGeneratingPantry] = useState(false);
+
+  const handleAutoFillPantry = async () => {
+    setIsGeneratingPantry(true);
+    const toastId = toast.loading('Consulting AI for common pantry staples...');
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5000/api/plan/common-pantry', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const result = await response.json();
+      if (result.success && result.data) {
+        // filter out items already in pantry
+        const newItems = result.data.filter(aiItem => 
+          !pantryItems.some(pItem => pItem.name.toLowerCase() === aiItem.name.toLowerCase())
+        );
+        const combined = [...newItems, ...pantryItems];
+        savePantry(combined);
+        toast.success(`Added ${newItems.length} common items!`, { id: toastId });
+      } else {
+        toast.error('Failed to get pantry items.', { id: toastId });
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Network error.', { id: toastId });
+    } finally {
+      setIsGeneratingPantry(false);
+    }
+  };
+
   const handleImageUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -159,6 +192,22 @@ const PantryInventory = () => {
             >
               <span className="material-symbols-outlined text-[18px]">photo_camera</span>
               {isScanning ? 'Scanning...' : 'Scan with AI'}
+            </button>
+
+            <div className="w-px h-6 bg-border mx-2 hidden sm:block"></div>
+            
+            <button 
+              type="button" 
+              onClick={handleAutoFillPantry}
+              disabled={isGeneratingPantry}
+              className="flex items-center gap-1 text-secondary hover:text-secondary-hover transition-colors font-body-sm font-semibold disabled:opacity-50"
+            >
+              {isGeneratingPantry ? (
+                <span className="material-symbols-outlined text-[18px] animate-spin">sync</span>
+              ) : (
+                <span className="material-symbols-outlined text-[18px]">smart_toy</span>
+              )}
+              {isGeneratingPantry ? 'Adding...' : 'Auto-add common staples (AI)'}
             </button>
           </div>
           

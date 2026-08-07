@@ -3,6 +3,7 @@ import { usePlan } from '../context/PlanContext';
 import { useNavigate } from 'react-router-dom';
 import RecipeDetailModal from './RecipeDetailModal';
 import { useAuth } from '../context/AuthContext';
+import toast from 'react-hot-toast';
 
 const RecipeCard = ({ recipe, cost, pantryUsed, substitutions, onRefresh, isRefreshing, onClick }) => {
   const [imgError, setImgError] = useState(false);
@@ -152,7 +153,7 @@ const RecipeCard = ({ recipe, cost, pantryUsed, substitutions, onRefresh, isRefr
 };
 
 const MealPlanView = () => {
-  const { planData, refreshMeal } = usePlan();
+  const { planData, refreshMeal, generatePlan, isLoading } = usePlan();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [refreshingMeal, setRefreshingMeal] = useState(null);
@@ -204,12 +205,43 @@ const MealPlanView = () => {
             <h2 className="font-hero-mobile md:font-hero text-hero-mobile md:text-hero text-on-background">Today's Menu</h2>
             <p className="font-body-lg text-body-lg text-text-secondary mt-2">{today}</p>
           </div>
-          <button 
-            onClick={() => navigate('/onboarding')}
-            className="px-6 py-2 bg-primary text-on-primary rounded-full font-label-caps text-label-caps hover:bg-primary-container hover:text-primary transition-colors"
-          >
-            New Plan
-          </button>
+          <div className="flex gap-2">
+            <button 
+              onClick={() => navigate('/onboarding')}
+              className="px-6 py-2 bg-surface border border-border text-text-secondary rounded-full font-label-caps text-label-caps hover:bg-surface-variant hover:text-on-surface transition-colors shadow-sm"
+            >
+              Change Prefs
+            </button>
+            <button 
+              onClick={async () => {
+                const toastId = toast.loading('Regenerating plan...');
+                try {
+                  const prefs = user?.preferences || {};
+                  const saved = localStorage.getItem('smartmeal_pantry');
+                  if (saved) {
+                    prefs.pantry = JSON.parse(saved);
+                  }
+                  const success = await generatePlan(prefs);
+                  if (success) {
+                    toast.success('Plan generated successfully!', { id: toastId });
+                  } else {
+                    toast.error('Failed to regenerate plan.', { id: toastId });
+                  }
+                } catch (err) {
+                  toast.error('Network error.', { id: toastId });
+                }
+              }}
+              disabled={isLoading}
+              className="px-6 py-2 bg-primary text-on-primary rounded-full font-label-caps text-label-caps hover:bg-primary-hover transition-colors shadow-sm flex items-center gap-1 disabled:opacity-50"
+            >
+              {isLoading ? (
+                <span className="material-symbols-outlined text-[16px] animate-spin">sync</span>
+              ) : (
+                <span className="material-symbols-outlined text-[16px]">autorenew</span>
+              )}
+              Regenerate (Current Pantry)
+            </button>
+          </div>
         </div>
         {/* Budget Summary Strip */}
         <div className="bg-gradient-to-r from-surface to-surface-alt rounded-2xl p-5 md:p-6 shadow-sm border border-border/50 flex flex-col md:flex-row gap-4 md:items-start w-full md:w-auto max-w-xl relative overflow-hidden">

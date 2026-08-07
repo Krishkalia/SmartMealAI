@@ -122,9 +122,14 @@ class PlanService {
     if (pantryItems && pantryItems.length > 0) {
       for (const item of pantryItems) {
         const pNorm = unitConverter.normalize(item.qty, item.unit);
-        const key = `${item.name.toLowerCase()}`;
+        const itemNameLower = item.name.toLowerCase().trim();
         
-        if (requiredIngredients[key]) {
+        // Find matching keys in requiredIngredients by prefix (name_)
+        const matchingKeys = Object.keys(requiredIngredients).filter(k => 
+          k.startsWith(`${itemNameLower}_`) || k === itemNameLower
+        );
+        
+        for (const key of matchingKeys) {
           const req = requiredIngredients[key];
           
           // Check for unit mismatch
@@ -138,11 +143,13 @@ class PlanService {
           if (pNorm.qty >= reqQty) {
             // Full overlap
             pantryUsed.push({ name: item.name, qtyUsed: reqQty, unit: pNorm.unit });
+            pNorm.qty -= reqQty; // reduce available pantry amount for next matching key if any
             delete requiredIngredients[key];
-          } else {
+          } else if (pNorm.qty > 0) {
             // Partial overlap
             pantryUsed.push({ name: item.name, qtyUsed: pNorm.qty, unit: pNorm.unit });
             requiredIngredients[key].qty -= pNorm.qty;
+            pNorm.qty = 0; // pantry item depleted
           }
         }
       }

@@ -225,6 +225,16 @@ exports.refreshMeal = async (req, res) => {
   }
 };
 
+exports.getCommonPantry = async (req, res) => {
+  try {
+    const items = await geminiService.generateCommonPantry();
+    res.json({ success: true, data: items });
+  } catch (error) {
+    console.error("Common pantry generation error:", error);
+    res.status(500).json({ success: false, message: 'Failed to generate common pantry items' });
+  }
+};
+
 exports.getUserPlans = async (req, res) => {
   try {
     const plans = await Plan.find({ userId: req.user.id })
