@@ -21,7 +21,7 @@ const DashboardPage = () => {
 
   return (
     <DashboardLayout currentTab={currentTab} setCurrentTab={setCurrentTab}>
-      {currentTab === 'planner' && <MealPlanView />}
+      {currentTab === 'planner' && <MealPlanView setCurrentTab={setCurrentTab} />}
       {currentTab === 'shopping' && <BudgetShoppingList />}
       {currentTab === 'timeline' && <CookingTimeline />}
       {currentTab === 'history' && <PlanHistory />}

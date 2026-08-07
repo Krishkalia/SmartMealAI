@@ -153,7 +153,7 @@ const RecipeCard = ({ recipe, cost, pantryUsed, substitutions, onRefresh, isRefr
   );
 };
 
-const MealPlanView = () => {
+const MealPlanView = ({ setCurrentTab }) => {
   const { planData, refreshMeal, generatePlan, isLoading } = usePlan();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -230,7 +230,7 @@ const MealPlanView = () => {
         
         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto mt-2 md:mt-0">
           <button 
-            onClick={() => navigate('/onboarding')}
+            onClick={() => setCurrentTab ? setCurrentTab('profile') : navigate('/onboarding')}
             className="tour-change-prefs w-full sm:w-auto px-6 py-3 md:py-2 bg-surface border border-border text-text-secondary rounded-full font-label-caps text-label-caps hover:bg-surface-variant hover:text-on-surface transition-colors shadow-sm flex justify-center items-center"
           >
             Change Prefs
