@@ -240,7 +240,7 @@ const MealPlanView = () => {
                 const toastId = toast.loading('Regenerating plan...');
                 try {
                   const prefs = user?.preferences || {};
-                  const saved = localStorage.getItem('smartmeal_pantry');
+                  const saved = localStorage.getItem(`smartmeal_pantry_${user?._id || 'guest'}`);
                   if (saved) {
                     prefs.pantry = JSON.parse(saved);
                   }

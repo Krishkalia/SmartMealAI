@@ -17,7 +17,7 @@ const OnboardingPage = () => {
 
   React.useEffect(() => {
     if (!prefs.pantry || prefs.pantry.length === 0) {
-      const saved = localStorage.getItem('smartmeal_pantry');
+      const saved = localStorage.getItem(`smartmeal_pantry_${user?._id || 'guest'}`);
       if (saved) {
         try {
           setPantryItems(JSON.parse(saved));
@@ -63,7 +63,7 @@ const OnboardingPage = () => {
 
   const savePantry = (items) => {
     setPantryItems(items);
-    localStorage.setItem('smartmeal_pantry', JSON.stringify(items));
+    localStorage.setItem(`smartmeal_pantry_${user?._id || 'guest'}`, JSON.stringify(items));
   };
 
   const [isGeneratingPantry, setIsGeneratingPantry] = useState(false);
@@ -73,7 +73,7 @@ const OnboardingPage = () => {
     const toastId = toast.loading('Consulting AI for common pantry staples...');
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/plan/common-pantry', {
+      const response = await fetch('https://smartmealai.onrender.com/api/plan/common-pantry', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`

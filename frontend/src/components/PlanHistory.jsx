@@ -18,7 +18,7 @@ const PlanHistory = () => {
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/plan/user/history', {
+        const res = await fetch('https://smartmealai.onrender.com/api/plan/user/history', {
           headers: {
             Authorization: `Bearer ${token}`
           }

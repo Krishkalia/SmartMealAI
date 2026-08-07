@@ -10,7 +10,7 @@ export const PlanProvider = ({ children }) => {
     setIsLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/plan/generate', {
+      const response = await fetch('https://smartmealai.onrender.com/api/plan/generate', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -21,7 +21,7 @@ export const PlanProvider = ({ children }) => {
       const data = await response.json();
       if (data.success) {
         // Fetch full populated plan
-        const fullPlanResponse = await fetch(`http://localhost:5000/api/plan/${data.data.planId}`, {
+        const fullPlanResponse = await fetch(`https://smartmealai.onrender.com/api/plan/${data.data.planId}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -56,7 +56,7 @@ export const PlanProvider = ({ children }) => {
     setIsLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/plan/${planId}/refresh-meal`, {
+      const response = await fetch(`https://smartmealai.onrender.com/api/plan/${planId}/refresh-meal`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
@@ -81,7 +81,7 @@ export const PlanProvider = ({ children }) => {
   const fetchSubstituteOptions = async (ingredientName, originalQty, originalUnit) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/plan/substitute-options`, {
+      const response = await fetch(`https://smartmealai.onrender.com/api/plan/substitute-options`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -103,7 +103,7 @@ export const PlanProvider = ({ children }) => {
   const swapIngredient = async (planId, ingredientName, substituteData) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/plan/${planId}/swap-ingredient`, {
+      const response = await fetch(`https://smartmealai.onrender.com/api/plan/${planId}/swap-ingredient`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
@@ -126,7 +126,7 @@ export const PlanProvider = ({ children }) => {
   const addManualItem = async (planId, ingredientName) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/plan/${planId}/manual-item`, {
+      const response = await fetch(`https://smartmealai.onrender.com/api/plan/${planId}/manual-item`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -152,7 +152,7 @@ export const PlanProvider = ({ children }) => {
       const token = localStorage.getItem('token');
       if (!token) return;
       setIsLoading(true);
-      const response = await fetch('http://localhost:5000/api/plan/user/history', {
+      const response = await fetch('https://smartmealai.onrender.com/api/plan/user/history', {
         headers: {
           'Authorization': `Bearer ${token}`
         }

@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUser = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/auth/me', {
+      const res = await fetch('https://smartmealai.onrender.com/api/auth/me', {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const login = async (email, password) => {
-    const res = await fetch('http://localhost:5000/api/auth/login', {
+    const res = await fetch('https://smartmealai.onrender.com/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
@@ -56,7 +56,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const register = async (name, email, password) => {
-    const res = await fetch('http://localhost:5000/api/auth/register', {
+    const res = await fetch('https://smartmealai.onrender.com/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, email, password })
@@ -72,7 +72,7 @@ export const AuthProvider = ({ children }) => {
 
   const updatePreferences = async (preferences) => {
     try {
-      const res = await fetch('http://localhost:5000/api/auth/preferences', {
+      const res = await fetch('https://smartmealai.onrender.com/api/auth/preferences', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -94,7 +94,7 @@ export const AuthProvider = ({ children }) => {
 
   const toggleFavorite = async (recipe) => {
     try {
-      const res = await fetch('http://localhost:5000/api/auth/favorites', {
+      const res = await fetch('https://smartmealai.onrender.com/api/auth/favorites', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
