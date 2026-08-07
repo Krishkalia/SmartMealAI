@@ -267,12 +267,38 @@ const LandingHero = () => {
               {/* Grid Item 6 */}
               <div className="flex gap-4">
                 <div className="w-12 h-12 rounded-full bg-primary/20 text-primary flex items-center justify-center flex-shrink-0">
-                  <span className="material-symbols-outlined">design_services</span>
+                  <span className="material-symbols-outlined">document_scanner</span>
                 </div>
                 <div>
-                  <h4 className="text-white font-semibold mb-2">Beautiful Interface</h4>
+                  <h4 className="text-white font-semibold mb-2">AI Pantry Vision</h4>
                   <p className="text-slate-400 text-sm leading-relaxed">
-                    A gorgeous, highly polished UI utilizing SweetAlerts, fluid animations, and premium typography.
+                    Upload a picture of your fridge or pantry shelf, and our AI will automatically identify and add the ingredients for you.
+                  </p>
+                </div>
+              </div>
+
+              {/* Grid Item 7 */}
+              <div className="flex gap-4">
+                <div className="w-12 h-12 rounded-full bg-primary/20 text-primary flex items-center justify-center flex-shrink-0">
+                  <span className="material-symbols-outlined">explore</span>
+                </div>
+                <div>
+                  <h4 className="text-white font-semibold mb-2">Interactive Guided Tours</h4>
+                  <p className="text-slate-400 text-sm leading-relaxed">
+                    Context-aware, step-by-step onboarding tooltips that help you master every module of the app instantly.
+                  </p>
+                </div>
+              </div>
+
+              {/* Grid Item 8 */}
+              <div className="flex gap-4">
+                <div className="w-12 h-12 rounded-full bg-primary/20 text-primary flex items-center justify-center flex-shrink-0">
+                  <span className="material-symbols-outlined">kitchen</span>
+                </div>
+                <div>
+                  <h4 className="text-white font-semibold mb-2">One-Click Staples</h4>
+                  <p className="text-slate-400 text-sm leading-relaxed">
+                    Instantly populate your pantry with common household ingredients powered by smart AI presets.
                   </p>
                 </div>
               </div>
