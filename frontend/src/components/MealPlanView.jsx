@@ -265,7 +265,6 @@ const MealPlanView = () => {
             Regenerate (Current Pantry)
             </button>
           </div>
-        </div>
         {/* Budget Summary Strip */}
         <div className="bg-gradient-to-r from-surface to-surface-alt rounded-2xl p-5 md:p-6 shadow-sm border border-border/50 flex flex-col md:flex-row gap-4 md:items-start w-full md:w-auto max-w-xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
