@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import RecipeDetailModal from './RecipeDetailModal';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
+import GuidedTour from './GuidedTour';
 
 const RecipeCard = ({ recipe, cost, pantryUsed, substitutions, onRefresh, isRefreshing, onClick }) => {
   const [imgError, setImgError] = useState(false);
@@ -72,7 +73,7 @@ const RecipeCard = ({ recipe, cost, pantryUsed, substitutions, onRefresh, isRefr
           <button 
             onClick={(e) => { e.stopPropagation(); onRefresh(recipe.mealType.toLowerCase()); }}
             disabled={isRefreshing}
-            className="absolute top-3 right-3 md:top-4 md:right-4 p-2 rounded-full bg-surface-variant text-text-secondary hover:text-primary hover:bg-primary/10 transition-colors disabled:opacity-50"
+            className="tour-refresh-meal absolute top-3 right-3 md:top-4 md:right-4 p-2 rounded-full bg-surface-variant text-text-secondary hover:text-primary hover:bg-primary/10 transition-colors disabled:opacity-50"
             title="Get a different meal for this slot"
           >
             <span className={`material-symbols-outlined text-[20px] ${isRefreshing ? 'animate-spin' : ''}`}>
@@ -165,6 +166,27 @@ const MealPlanView = () => {
     setRefreshingMeal(null);
   };
 
+  const tourSteps = [
+    {
+      target: '.tour-change-prefs',
+      title: 'Update Your Preferences',
+      content: 'Need to change your diet, allergies, or household size? Click here to update your profile and generate a fresh plan.',
+      placement: 'bottom',
+    },
+    {
+      target: '.tour-regenerate',
+      title: 'Quick Regenerate',
+      content: 'Added new items to your Pantry? Click here to instantly generate a new meal plan using what you just added!',
+      placement: 'bottom',
+    },
+    {
+      target: '.tour-refresh-meal',
+      title: 'Swap Single Meals',
+      content: 'Don\'t like a specific meal? Click this refresh button on any card to swap it out for something else without changing the rest of your plan.',
+      placement: 'left',
+    }
+  ];
+
   if (!planData) {
     return (
       <div className="flex flex-col items-center justify-center p-8 flex-1 text-center h-full min-h-[60vh]">
@@ -190,6 +212,7 @@ const MealPlanView = () => {
 
   return (
     <div className="p-4 md:p-8 w-full flex-1 pt-6 md:pt-10 pb-16 bg-gradient-to-br from-amber-100/60 via-sky-100/40 to-indigo-100/60 min-h-full relative z-0 overflow-hidden">
+      <GuidedTour steps={tourSteps} tourKey="meal_planner" />
       {/* Background Aesthetic Icons */}
       <div className="absolute top-[-5%] left-[-2%] text-amber-500/10 pointer-events-none -z-10 transform -rotate-12">
         <span className="material-symbols-outlined" style={{ fontSize: '300px', fontVariationSettings: "'FILL' 1" }}>light_mode</span>
@@ -208,7 +231,7 @@ const MealPlanView = () => {
           <div className="flex gap-2">
             <button 
               onClick={() => navigate('/onboarding')}
-              className="px-6 py-2 bg-surface border border-border text-text-secondary rounded-full font-label-caps text-label-caps hover:bg-surface-variant hover:text-on-surface transition-colors shadow-sm"
+              className="tour-change-prefs px-6 py-2 bg-surface border border-border text-text-secondary rounded-full font-label-caps text-label-caps hover:bg-surface-variant hover:text-on-surface transition-colors shadow-sm"
             >
               Change Prefs
             </button>
@@ -232,7 +255,7 @@ const MealPlanView = () => {
                 }
               }}
               disabled={isLoading}
-              className="px-6 py-2 bg-primary text-on-primary rounded-full font-label-caps text-label-caps hover:bg-primary-hover transition-colors shadow-sm flex items-center gap-1 disabled:opacity-50"
+              className="tour-regenerate px-6 py-2 bg-primary text-on-primary rounded-full font-label-caps text-label-caps hover:bg-primary-hover transition-colors shadow-sm flex items-center gap-1 disabled:opacity-50"
             >
               {isLoading ? (
                 <span className="material-symbols-outlined text-[16px] animate-spin">sync</span>

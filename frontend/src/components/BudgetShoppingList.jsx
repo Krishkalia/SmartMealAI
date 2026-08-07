@@ -4,6 +4,7 @@ import { useAutoAnimate } from '@formkit/auto-animate/react';
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
 import toast from 'react-hot-toast';
+import GuidedTour from './GuidedTour';
 
 const MySwal = withReactContent(Swal);
 
@@ -225,6 +226,23 @@ const BudgetShoppingList = () => {
 
   return (
     <div className="p-4 md:p-8 max-w-[1400px] mx-auto w-full flex-1 space-y-8 pt-6 md:pt-10 pb-40 bg-gradient-to-br from-amber-50/40 via-sky-50/20 to-indigo-50/40 min-h-full relative z-0">
+      <GuidedTour 
+        tourKey="shopping"
+        steps={[
+          {
+            target: '.tour-smart-swap',
+            title: 'Smart Swaps',
+            content: 'Missing an ingredient or is it too expensive? Click this button to have AI find safe substitutes and instantly swap it out.',
+            placement: 'left',
+          },
+          {
+            target: '.tour-custom-item',
+            title: 'Add Custom Items',
+            content: 'Need paper towels or something else? Add any manual items to your list here so you don\'t forget them.',
+            placement: 'top',
+          }
+        ]} 
+      />
       {/* TOP SECTION: Budget & Substitutions (Bento Grid) */}
       <section className={`grid grid-cols-1 ${budget ? 'lg:grid-cols-3' : 'lg:grid-cols-2'} gap-8`}>
         {/* Budget Analysis Card */}
@@ -366,7 +384,7 @@ const BudgetShoppingList = () => {
                               <button 
                                 onClick={(e) => handleSwap(e, item)}
                                 disabled={swappingItem === item.ingredientName}
-                                className="w-8 h-8 rounded hover:bg-surface-variant flex items-center justify-center text-text-secondary hover:text-primary transition-colors disabled:opacity-50"
+                                className="tour-smart-swap w-8 h-8 rounded hover:bg-surface-variant flex items-center justify-center text-text-secondary hover:text-primary transition-colors disabled:opacity-50"
                                 title="Find a substitute"
                               >
                                 {swappingItem === item.ingredientName ? (
@@ -446,7 +464,7 @@ const BudgetShoppingList = () => {
 
         {/* Manual Item Add */}
         {planData && (
-          <div className="mt-12 bg-surface-alt p-6 rounded-xl border border-border shadow-sm max-w-2xl">
+          <div className="tour-custom-item mt-12 bg-surface-alt p-6 rounded-xl border border-border shadow-sm max-w-2xl">
             <h3 className="font-h2 text-h2 text-on-surface mb-2">Need something else?</h3>
             <p className="font-body-sm text-text-secondary mb-4">Add custom items to your shopping list.</p>
             <form onSubmit={handleAddManualItem} className="flex gap-3">

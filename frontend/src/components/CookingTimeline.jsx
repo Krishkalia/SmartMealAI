@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { usePlan } from '../context/PlanContext';
 import { useAuth } from '../context/AuthContext';
 import RecipeDetailModal from './RecipeDetailModal';
+import GuidedTour from './GuidedTour';
 
 const CookingTimeline = () => {
   const { planData } = usePlan();
@@ -48,6 +49,17 @@ const CookingTimeline = () => {
 
   return (
     <div className="p-4 md:p-margin max-w-max-width mx-auto w-full flex-1 pt-6 md:pt-12 pb-24">
+      <GuidedTour 
+        tourKey="timeline"
+        steps={[
+          {
+            target: '.tour-detailed-recipe',
+            title: 'Full Recipe Details',
+            content: 'Want to see the full ingredient list and instructions for this meal? Click this button to open the detailed recipe card.',
+            placement: 'top',
+          }
+        ]} 
+      />
       {/* Header Section */}
       <div className="mb-section-gap-sm md:mb-section-gap-lg text-center md:text-left flex flex-col md:flex-row justify-between items-end gap-6">
         <div>
@@ -91,7 +103,7 @@ const CookingTimeline = () => {
                       {step.duration > 0 && <p className="text-text-secondary text-body-sm mt-3 font-medium flex items-center gap-1 relative z-10"><span className="material-symbols-outlined text-[16px]">schedule</span> {step.duration} min</p>}
                     </div>
                     {isLastForMeal && (
-                      <button onClick={() => handleOpenRecipe(step.mealType)} className="text-primary hover:text-primary-hover font-label-caps text-label-caps text-sm flex items-center justify-end gap-1 w-full mt-4">
+                      <button onClick={() => handleOpenRecipe(step.mealType)} className="tour-detailed-recipe text-primary hover:text-primary-hover font-label-caps text-label-caps text-sm flex items-center justify-end gap-1 w-full mt-4">
                         Detailed Recipe <span className="material-symbols-outlined text-[18px]">menu_book</span>
                       </button>
                     )}
@@ -119,7 +131,7 @@ const CookingTimeline = () => {
                       {step.duration > 0 && <p className="text-text-secondary text-body-sm mt-3 font-medium flex items-center gap-1 relative z-10"><span className="material-symbols-outlined text-[16px]">schedule</span> {step.duration} min</p>}
                    </div>
                    {isLastForMeal && (
-                      <button onClick={() => handleOpenRecipe(step.mealType)} className="text-primary hover:text-primary-hover font-label-caps text-label-caps text-sm flex items-center justify-start gap-1 w-full mt-4">
+                      <button onClick={() => handleOpenRecipe(step.mealType)} className="tour-detailed-recipe text-primary hover:text-primary-hover font-label-caps text-label-caps text-sm flex items-center justify-start gap-1 w-full mt-4">
                         Detailed Recipe <span className="material-symbols-outlined text-[18px]">menu_book</span>
                       </button>
                     )}
@@ -136,7 +148,7 @@ const CookingTimeline = () => {
                       {step.duration > 0 && <p className="text-text-secondary text-body-sm mt-3 font-medium flex items-center gap-1 relative z-10"><span className="material-symbols-outlined text-[16px]">schedule</span> {step.duration} min</p>}
                     </div>
                     {isLastForMeal && (
-                      <button onClick={() => handleOpenRecipe(step.mealType)} className="text-primary hover:text-primary-hover font-label-caps text-label-caps text-sm flex items-center justify-start gap-1 w-full mt-4">
+                      <button onClick={() => handleOpenRecipe(step.mealType)} className="tour-detailed-recipe text-primary hover:text-primary-hover font-label-caps text-label-caps text-sm flex items-center justify-start gap-1 w-full mt-4">
                         Detailed Recipe <span className="material-symbols-outlined text-[18px]">menu_book</span>
                       </button>
                     )}

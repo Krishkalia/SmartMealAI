@@ -5,6 +5,7 @@ import { Loader2 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
 import toast from 'react-hot-toast';
+import GuidedTour from './GuidedTour';
 
 const MySwal = withReactContent(Swal);
 
@@ -64,6 +65,17 @@ const PlanHistory = () => {
 
   return (
     <div className="p-4 md:p-margin max-w-max-width mx-auto w-full flex-1 pt-6 md:pt-12">
+      <GuidedTour 
+        tourKey="history"
+        steps={[
+          {
+            target: '.tour-reload-plan',
+            title: 'Reload Past Plans',
+            content: 'Loved a plan from a few days ago? Click this button to instantly overwrite your current plan with this past one!',
+            placement: 'top',
+          }
+        ]} 
+      />
       <div className="mb-8 border-b border-border pb-4">
         <h2 className="font-h1 text-h1 text-on-surface">Your Profile & History</h2>
         <p className="font-body-sm text-body-sm text-text-secondary mt-1">Review and reload your past meal plans.</p>
@@ -99,7 +111,7 @@ const PlanHistory = () => {
               </div>
               <button 
                 onClick={() => loadPlan(plan)}
-                className="mt-6 w-full px-4 py-2 bg-primary-container/10 text-primary hover:bg-primary hover:text-on-primary rounded-lg font-body-sm transition-colors border border-primary/20"
+                className="tour-reload-plan mt-6 w-full px-4 py-2 bg-primary-container/10 text-primary hover:bg-primary hover:text-on-primary rounded-lg font-body-sm transition-colors border border-primary/20"
               >
                 Reload Plan
               </button>

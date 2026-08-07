@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import RecipeDetailModal from './RecipeDetailModal';
+import GuidedTour from './GuidedTour';
 
 const ProfileSettings = () => {
   const { user, updatePreferences } = useAuth();
@@ -112,6 +113,17 @@ const ProfileSettings = () => {
 
   return (
     <div className="p-4 md:p-margin max-w-4xl mx-auto w-full flex-1 pt-6 md:pt-12 pb-8">
+      <GuidedTour 
+        tourKey="profile"
+        steps={[
+          {
+            target: '.tour-fav-recipes',
+            title: 'Your Favorites',
+            content: 'All the meals you love and save will appear right here for quick access later.',
+            placement: 'top',
+          }
+        ]} 
+      />
       <div className="mb-8 border-b border-border pb-6">
         <h2 className="font-h1 text-[32px] md:text-hero text-on-surface leading-tight mb-2">Profile Preferences</h2>
         <p className="font-body-lg text-body-lg text-text-secondary">Update your dietary needs and household budget.</p>
@@ -237,7 +249,7 @@ const ProfileSettings = () => {
       </div>
 
       {/* Favorite Recipes Section */}
-      <div id="favorites-section" className="mt-12 mb-8 border-b border-border pb-6 flex items-center gap-2">
+      <div id="favorites-section" className="tour-fav-recipes mt-12 mb-8 border-b border-border pb-6 flex items-center gap-2">
         <span className="material-symbols-outlined text-[28px] text-danger fill-current" style={{ fontVariationSettings: "'FILL' 1" }}>favorite</span>
         <h2 className="font-h1 text-[28px] md:text-3xl text-on-surface leading-tight">Favorite Recipes</h2>
       </div>

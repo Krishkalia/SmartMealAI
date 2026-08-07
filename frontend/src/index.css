@@ -65,3 +65,50 @@ button {
   border: none;
   background: none;
 }
+
+/* Driver.js Custom Theme */
+.driverjs-theme {
+  border-radius: 12px;
+  font-family: var(--font-body);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-lg);
+  padding: 16px;
+}
+.driverjs-theme .driver-popover-title {
+  font-family: var(--font-display);
+  font-size: var(--text-h2);
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+.driverjs-theme .driver-popover-description {
+  font-family: var(--font-body);
+  color: var(--color-text-secondary);
+  font-size: var(--text-small);
+  line-height: 1.5;
+  margin-top: 8px;
+}
+.driverjs-theme .driver-popover-next-btn, 
+.driverjs-theme .driver-popover-prev-btn {
+  background-color: var(--color-surface-alt);
+  color: var(--color-text-primary);
+  border: none;
+  border-radius: 9999px;
+  padding: 6px 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.driverjs-theme .driver-popover-next-btn:hover,
+.driverjs-theme .driver-popover-prev-btn:hover {
+  background-color: var(--color-border);
+}
+.driverjs-theme .driver-popover-next-btn {
+  background-color: var(--color-primary);
+  color: #FFFFFF;
+}
+.driverjs-theme .driver-popover-next-btn:hover {
+  background-color: var(--color-primary-hover);
+}
+.driver-popover-close-btn {
+  color: var(--color-text-secondary);
+}

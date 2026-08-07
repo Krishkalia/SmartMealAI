@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
+import GuidedTour from './GuidedTour';
 
 const PantryInventory = () => {
   const [pantryItems, setPantryItems] = useState([]);
@@ -144,8 +145,24 @@ const PantryInventory = () => {
     }
   };
 
+  const tourSteps = [
+    {
+      target: '.tour-scan-ai',
+      title: 'Scan with AI',
+      content: 'Too tired to type? Upload a picture of your fridge or pantry shelf, and our AI will automatically identify and add the ingredients for you!',
+      placement: 'bottom',
+    },
+    {
+      target: '.tour-auto-staple',
+      title: 'Auto-fill Common Staples',
+      content: 'Click this to instantly add 10 common household essentials (like salt, pepper, oil) so you don\'t have to add them one by one.',
+      placement: 'bottom',
+    }
+  ];
+
   return (
     <div className="p-4 md:p-margin max-w-max-width mx-auto w-full flex-1">
+      <GuidedTour steps={tourSteps} tourKey="pantry" />
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
           <h2 className="font-h1 text-h1 text-on-surface">Pantry Inventory</h2>
@@ -188,7 +205,7 @@ const PantryInventory = () => {
               type="button" 
               onClick={() => fileInputRef.current.click()}
               disabled={isScanning}
-              className="flex items-center gap-1 text-[#2B5C8F] hover:text-[#1A3D63] transition-colors font-body-sm font-semibold"
+              className="tour-scan-ai flex items-center gap-1 text-[#2B5C8F] hover:text-[#1A3D63] transition-colors font-body-sm font-semibold"
             >
               <span className="material-symbols-outlined text-[18px]">photo_camera</span>
               {isScanning ? 'Scanning...' : 'Scan with AI'}
@@ -200,7 +217,7 @@ const PantryInventory = () => {
               type="button" 
               onClick={handleAutoFillPantry}
               disabled={isGeneratingPantry}
-              className="flex items-center gap-1 text-secondary hover:text-secondary-hover transition-colors font-body-sm font-semibold disabled:opacity-50"
+              className="tour-auto-staple flex items-center gap-1 text-secondary hover:text-secondary-hover transition-colors font-body-sm font-semibold disabled:opacity-50"
             >
               {isGeneratingPantry ? (
                 <span className="material-symbols-outlined text-[18px] animate-spin">sync</span>
