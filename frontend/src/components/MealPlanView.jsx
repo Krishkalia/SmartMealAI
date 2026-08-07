@@ -222,47 +222,47 @@ const MealPlanView = () => {
       </div>
 
       {/* Header / Summary Strip */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 border-b border-border pb-6">
-        <div className="flex flex-row items-center justify-between md:flex-col md:items-start gap-4 w-full md:w-auto">
-          <div>
-            <h2 className="font-hero-mobile md:font-hero text-hero-mobile md:text-hero text-on-background">Today's Menu</h2>
-            <p className="font-body-lg text-body-lg text-text-secondary mt-2">{today}</p>
-          </div>
-          <div className="flex gap-2">
-            <button 
-              onClick={() => navigate('/onboarding')}
-              className="tour-change-prefs px-6 py-2 bg-surface border border-border text-text-secondary rounded-full font-label-caps text-label-caps hover:bg-surface-variant hover:text-on-surface transition-colors shadow-sm"
-            >
-              Change Prefs
-            </button>
-            <button 
-              onClick={async () => {
-                const toastId = toast.loading('Regenerating plan...');
-                try {
-                  const prefs = user?.preferences || {};
-                  const saved = localStorage.getItem(`smartmeal_pantry_${user?._id || 'guest'}`);
-                  if (saved) {
-                    prefs.pantry = JSON.parse(saved);
-                  }
-                  const success = await generatePlan(prefs);
-                  if (success) {
-                    toast.success('Plan generated successfully!', { id: toastId });
-                  } else {
-                    toast.error('Failed to regenerate plan.', { id: toastId });
-                  }
-                } catch (err) {
-                  toast.error('Network error.', { id: toastId });
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8 md:mb-12 border-b border-border pb-6">
+        <div>
+          <h2 className="font-hero-mobile md:font-hero text-hero-mobile md:text-hero text-on-background leading-tight">Today's Menu</h2>
+          <p className="font-body-lg text-body-lg text-text-secondary mt-2">{today}</p>
+        </div>
+        
+        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto mt-2 md:mt-0">
+          <button 
+            onClick={() => navigate('/onboarding')}
+            className="tour-change-prefs w-full sm:w-auto px-6 py-3 md:py-2 bg-surface border border-border text-text-secondary rounded-full font-label-caps text-label-caps hover:bg-surface-variant hover:text-on-surface transition-colors shadow-sm flex justify-center items-center"
+          >
+            Change Prefs
+          </button>
+          <button 
+            onClick={async () => {
+              const toastId = toast.loading('Regenerating plan...');
+              try {
+                const prefs = user?.preferences || {};
+                const saved = localStorage.getItem(`smartmeal_pantry_${user?._id || 'guest'}`);
+                if (saved) {
+                  prefs.pantry = JSON.parse(saved);
                 }
-              }}
-              disabled={isLoading}
-              className="tour-regenerate px-6 py-2 bg-primary text-on-primary rounded-full font-label-caps text-label-caps hover:bg-primary-hover transition-colors shadow-sm flex items-center gap-1 disabled:opacity-50"
-            >
-              {isLoading ? (
-                <span className="material-symbols-outlined text-[16px] animate-spin">sync</span>
-              ) : (
-                <span className="material-symbols-outlined text-[16px]">autorenew</span>
-              )}
-              Regenerate (Current Pantry)
+                const success = await generatePlan(prefs);
+                if (success) {
+                  toast.success('Plan generated successfully!', { id: toastId });
+                } else {
+                  toast.error('Failed to regenerate plan.', { id: toastId });
+                }
+              } catch (err) {
+                toast.error('Network error.', { id: toastId });
+              }
+            }}
+            disabled={isLoading}
+            className="tour-regenerate w-full sm:w-auto px-6 py-3 md:py-2 bg-primary text-on-primary rounded-full font-label-caps text-label-caps hover:bg-primary-hover transition-colors shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
+          >
+            {isLoading ? (
+              <span className="material-symbols-outlined text-[18px] animate-spin">sync</span>
+            ) : (
+              <span className="material-symbols-outlined text-[18px]">autorenew</span>
+            )}
+            Regenerate (Current Pantry)
             </button>
           </div>
         </div>
