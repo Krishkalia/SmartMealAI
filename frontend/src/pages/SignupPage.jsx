@@ -60,7 +60,10 @@ const SignupPage = () => {
                 required
                 className="block w-full px-4 py-3 border border-border rounded-lg bg-surface text-on-background font-body-lg text-body-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => {
+                  const lettersOnly = e.target.value.replace(/[^A-Za-z\s]/g, '');
+                  setName(lettersOnly);
+                }}
               />
             </div>
 
