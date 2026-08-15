@@ -39,6 +39,11 @@ const SignupPage = () => {
     }
   };
 
+  const isValidEmail = (emailStr) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailStr);
+  };
+  const isEmailError = email.length > 0 && !isValidEmail(email);
+
   return (
     <div className="min-h-screen flex flex-col font-body-lg antialiased bg-background text-on-background selection:bg-primary-container selection:text-on-primary-container">
       <header className="w-full sticky top-0 z-50 bg-background flex justify-between items-center px-margin py-4 max-w-max-width mx-auto border-b border-border dark:border-outline-variant">
@@ -68,7 +73,9 @@ const SignupPage = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="font-label-caps text-label-caps uppercase text-text-secondary block">Email</label>
+              <label className={`font-label-caps text-label-caps uppercase block ${isEmailError ? 'text-danger' : 'text-text-secondary'}`}>
+                Email
+              </label>
               <input 
                 type="email" 
                 required
