@@ -84,6 +84,30 @@ const SignupPage = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
+              
+              {/* Dynamic Password Checklist */}
+              {password.length > 0 && (
+                <div className="mt-3 space-y-1.5 p-3 bg-surface-alt/50 rounded-lg border border-border/50">
+                  <div className={`flex items-center text-sm ${password.length >= 8 ? 'text-success' : 'text-text-secondary'}`}>
+                    <span className="material-symbols-outlined text-[16px] mr-2">
+                      {password.length >= 8 ? 'check_circle' : 'radio_button_unchecked'}
+                    </span>
+                    At least 8 characters
+                  </div>
+                  <div className={`flex items-center text-sm ${/[A-Za-z]/.test(password) ? 'text-success' : 'text-text-secondary'}`}>
+                    <span className="material-symbols-outlined text-[16px] mr-2">
+                      {/[A-Za-z]/.test(password) ? 'check_circle' : 'radio_button_unchecked'}
+                    </span>
+                    At least one letter
+                  </div>
+                  <div className={`flex items-center text-sm ${/\d/.test(password) ? 'text-success' : 'text-text-secondary'}`}>
+                    <span className="material-symbols-outlined text-[16px] mr-2">
+                      {/\d/.test(password) ? 'check_circle' : 'radio_button_unchecked'}
+                    </span>
+                    At least one number
+                  </div>
+                </div>
+              )}
             </div>
 
             <button 
